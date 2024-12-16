@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//エフェクトのオブジェクトのさらに子オブジェクト用のスクリプト
+//主にスプライトの制御用
 public class yz_effObjectManager : MonoBehaviour
 {
     Transform pTra;
@@ -37,8 +39,6 @@ public class yz_effObjectManager : MonoBehaviour
     {
         tra = this.transform;
         pTra = tra.parent.transform;
-//        Debug.Log("objectManager is load!");
-        //
         sr = this?.GetComponent<SpriteRenderer>();
         ps = pTra?.GetComponent<ParticleSystem>();
         if (ps != null && sr != null)
@@ -47,8 +47,6 @@ public class yz_effObjectManager : MonoBehaviour
             pColor = psm.startColor.color;
             float tempA = sr.color.a;
             Color setColor = sr.color * (pColor * colorStr);
-            //            Color setColor = Color.Lerp(sr.color, pColor, colorStr);
-            //            Debug.Log($"ColorStat:p:{pColor},sr:{sr.color},str:{colorStr},fixC:{colorFix},fixA:{alphaFix}");
             setColor.SetAlpha(tempA);
             setColor *= colorFix;
             setColor.SetAlpha(setColor.a * alphaFix);
@@ -66,6 +64,8 @@ public class yz_effObjectManager : MonoBehaviour
             tra.eulerAngles = ang;
         }
     }
+    //
+    //処理順の都合でStart()じゃなくてUpdate()で初期化処理
     private void Update()
     {
         if (!oneshot)

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//エフェクトオブジェクトのスクリプト
 public class yz_objFollw : MonoBehaviour
 {
     ParticleSystem ps;//パーティクル管理
@@ -123,9 +124,7 @@ public class yz_objFollw : MonoBehaviour
             }
 
         }
-        //座標の適応とZの補正
-
-        //        tra.position = new Vector3(pos2.x, pos2.y, parentPos.z - 400);
+        //座標の適用とZの補正
         tra.position = new Vector3(pos2.x, pos2.y, parentPos.z -20);
 
     }

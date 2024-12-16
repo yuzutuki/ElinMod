@@ -9,21 +9,19 @@ using UnityEngine.Rendering;
 [BepInPlugin("yuzutuki.yzExParticle", "ExParticle", "1.0.0.0")]
 public class yzExParticle : BaseUnityPlugin
 {
-//    static public string yztest = "ねう！";
     static public AssetBundle ab;
     static public string dir;
     private void Start()
     {
-        //        yztest = "ねうねう！";
+        //Modが保存されているフォルダの取得とアセットの読み込みとか
         dir = Path.GetDirectoryName(Info.Location);
         ab = AssetBundle.LoadFromFile(Path.Combine(dir, "ParticleAsset", "testparticle2"));
-        //
         var harmony = new Harmony("yzExParticle");
         harmony.PatchAll();
-        //
         if (yzParticleDictionary.dicObj.Count == 0)
             yzParticleDictionary.LoadingAsset();
     }
+    //オブジェクトの生成用
     static public yz_objFollw CreateIns(string name,Vector3 setPos)
     {
         GameObject obj = (GameObject)Instantiate(yzParticleDictionary.dicObj[name]);
@@ -35,63 +33,7 @@ public class yzExParticle : BaseUnityPlugin
     }
 }
 //
-
-//
-/*
-[HarmonyPatch(typeof(Effect), "Activate")]
-public class yzPostEffect : yzExParticle
-{
-static public yz_objFollw CreateIns(string name, GameObject parent, Vector3 setPos)
-{
-    GameObject obj = (GameObject)Instantiate(yzParticleDictionary.dicObj[name]);
-    obj.transform.position = setPos;
-        obj.AddComponent<yz_objFollw>();
-        yz_objFollw sc = obj.GetComponent<yz_objFollw>();
-    return (sc);
-}
-//
-//色の設定
-static public Color ColorSeting(Effect ins)
-{
-    Color color = Color.white;
-    if (ins.sr != null)
-    {
-        color = ins.sr.color;
-    }
-    color.SetAlpha(224);
-    return (color);
-}
-[HarmonyPostfix]
-static void Postfix(Effect __instance)
-{
-    string name = __instance.GetComponent<Transform>().name;
-    string particleID = null;
-    yz_objFollw sc;
-    switch (name)
-    {
-        case "spell_arrow(Clone)":
-            particleID = "spArrow1";
-            sc = CreateIns(particleID,__instance.gameObject,__instance.fromV);
-            sc.setProp(
-                type: yz_objFollw.Type.arrow,
-                targetPos: __instance.destV,
-                pPos: __instance.fromV,
-                sp: 0.5f,
-                setColor: ColorSeting(__instance));
-            break;
-/*                
-        case "cast(Clone)":
-            particleID = "castBlue";
-            sc = CreateIns(particleID, __instance.gameObject, __instance.fromV);
-            sc.setProp(
-                type: yz_objFollw.Type.self,
-                pPos: __instance.transform.position);
-            break;
-    }
-}
-}
-*/
-//
+//ActEffectのProcAtに割り込み
 [HarmonyPatch(typeof(ActEffect),nameof(ActEffect.ProcAt))]
 public class yz_readAction : yzExParticle
 {
@@ -101,7 +43,7 @@ public class yz_readAction : yzExParticle
         //id:種類(Arrow,Ball..)
         //AliasEle:属性(eleFire,eleIce...)
         //        ElementRef er = EClass.setting.elements[e.source.alias];
-        //詠唱エフェクト
+        //詠唱エフェクトの処理と下準備
         string particleID;
         particleID = null;
         switch (id)
@@ -171,13 +113,12 @@ public class yz_readAction : yzExParticle
 //            targetV.x += 0.05f;
             targetV.y += 0.3f;
             targetV.z -= 80f;
-            //setV.z
             yz_objFollw sc = CreateIns(particleID, setV); ;
             sc.setProp(
                 type: yz_objFollw.Type.self,
                 pPos: setV);
 //            Debug.Log($"cc.pos.position:{setV}");
-            //
+            //攻撃エフェクトの処理
             switch (id)
             {
                 case EffectId.Arrow:
@@ -192,7 +133,6 @@ public class yz_readAction : yzExParticle
                     break;
                 case EffectId.Ball:
 //                    Debug.Log("この辺にボール処理");
-//                    Debug.Log($"setV?:{setV}");
                     sc = CreateIns("spBall", setV); ;
                     sc.setProp(
                         type: yz_objFollw.Type.self,
@@ -201,7 +141,6 @@ public class yz_readAction : yzExParticle
                     break;
                 case EffectId.Bolt:
 //                    Debug.Log("この辺に光線処理");
-//                    Debug.Log($"setV?:{setV},tV:{targetV}");
                     sc = CreateIns("spBolt", setV); ;
                     sc.setProp(
                         type: yz_objFollw.Type.bolt,

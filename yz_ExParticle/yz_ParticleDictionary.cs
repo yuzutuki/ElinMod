@@ -2,12 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//読み込んだアセットをDictionaryにぶちこむ
+//ついでにスクリプトが必要な子へのアタッチ処理
 static class yzParticleDictionary
 {
     static public bool onshot;
     static public Dictionary<string, GameObject> dicObj = new Dictionary<string, GameObject>();
     static public void LoadingAsset()
     {
+        //たぶんforeach文とかでもっと最適化できる気がする
         dicObj.Add("testpart1", yzExParticle.ab.LoadAsset<GameObject>("testpart1"));
         dicObj.Add("testpart2", yzExParticle.ab.LoadAsset<GameObject>("testpart2"));
         dicObj.Add("spArrow1", yzExParticle.ab.LoadAsset<GameObject>("spArrow1"));
