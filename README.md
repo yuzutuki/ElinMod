@@ -21,7 +21,7 @@
 - YLVANIA(Elin/Elonaオフィシャルサイト)：
 https://ylvania.org/
 
-- Elin　Steamストアページ：
+- Elin Steamストアページ：
 https://store.steampowered.com/app/2135150/Elin/
 
 - Ylvapedia：
