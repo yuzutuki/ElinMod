@@ -20,11 +20,36 @@ static class yzParticleDictionary
         dicObj.Add("castSummon", yzExParticle.ab.LoadAsset<GameObject>("castSummon"));
         dicObj.Add("spBall", yzExParticle.ab.LoadAsset<GameObject>("spBall"));
         dicObj.Add("spBolt", yzExParticle.ab.LoadAsset<GameObject>("spBolt"));
+        dicObj.Add("spMiasma", yzExParticle.ab.LoadAsset<GameObject>("spMiasma"));
+        dicObj.Add("spHand", yzExParticle.ab.LoadAsset<GameObject>("spHand"));
         Debug.Log("___ExParticle_Loading___");
         Debug.Log("modPath..:" + yzExParticle.dir);
         //スクリプトのアタッチ
-        ////ボール
+        //命名規則決めて単純化できそう
         Transform child;
+        ////手
+        child = dicObj["spHand"].transform.Find("sp1");
+        child.gameObject.AddComponent<yz_effObjectManager>();
+        child.GetComponent<yz_effObjectManager>().setProp(
+            cStr: 0.8f,
+           aFix: 1f);
+        child = dicObj["spHand"].transform.Find("sp4");
+        child.gameObject.AddComponent<yz_effObjectManager>();
+        child.GetComponent<yz_effObjectManager>().setProp(
+            cStr: 0.6f,
+           aFix: 0.8f);
+        child = dicObj["spHand"].transform.Find("sp5");
+        child.gameObject.AddComponent<yz_effObjectManager>();
+        child.GetComponent<yz_effObjectManager>().setProp(
+            cStr: 0.2f,
+           aFix: 0.8f);
+        ////矢
+        child = dicObj["spArrow1"].transform.Find("sp1");
+        child.gameObject.AddComponent<yz_effObjectManager>();
+        child.GetComponent<yz_effObjectManager>().setProp(
+            cStr: 0.8f,
+           aFix: 1f);
+        ////ボール
         child = dicObj["spBall"].transform.Find("sp1");
         child.gameObject.AddComponent<yz_effObjectManager>();
         child.GetComponent<yz_effObjectManager>().setProp(

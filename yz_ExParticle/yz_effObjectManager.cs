@@ -51,7 +51,7 @@ public class yz_effObjectManager : MonoBehaviour
             setColor *= colorFix;
             setColor.SetAlpha(setColor.a * alphaFix);
             sr.color = setColor;
-//            Debug.Log($"ColorResult:{setColor}");
+            //Debug.Log($"ColorResult:{setColor}");
         }
         else
         {

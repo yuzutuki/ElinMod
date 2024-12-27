@@ -115,12 +115,21 @@ public class yz_readAction : yzExParticle
             targetV.z -= 80f;
             yz_objFollw sc = CreateIns(particleID, setV); ;
             sc.setProp(
-                type: yz_objFollw.Type.self,
+                type: yz_objFollw.Type.point,
                 pPos: setV);
 //            Debug.Log($"cc.pos.position:{setV}");
             //攻撃エフェクトの処理
             switch (id)
             {
+                case EffectId.Hand:
+                    sc = CreateIns("spHand", setV); ;
+                    sc.setProp(
+                        type: yz_objFollw.Type.bolt,
+                        pPos: setV,
+                        targetPos: targetV,
+                        setColor: elementColor,
+                        look: true);
+                    break;
                 case EffectId.Arrow:
                     //Debug.Log("この辺に矢処理");
                     sc = CreateIns("spArrow1", setV);
@@ -129,13 +138,14 @@ public class yz_readAction : yzExParticle
                         targetPos:targetV,
                         pPos: setV,
                         sp: 0.5f,
-                        setColor: elementColor);
+                        setColor: elementColor,
+                        look: true);
                     break;
                 case EffectId.Ball:
 //                    Debug.Log("この辺にボール処理");
                     sc = CreateIns("spBall", setV); ;
                     sc.setProp(
-                        type: yz_objFollw.Type.self,
+                        type: yz_objFollw.Type.point,
                         pPos: setV,
                         setColor:elementColor);
                     break;
@@ -146,7 +156,36 @@ public class yz_readAction : yzExParticle
                         type: yz_objFollw.Type.bolt,
                         pPos: setV,
                         targetPos:targetV,
-                        setColor: elementColor);
+                        setColor: elementColor,
+                        look:true);
+                    break;
+                case EffectId.Debuff:
+                    //エレメント見て瘴気だけ抽出
+                    switch (aEle)
+                    {
+                        case ("eleFire"):
+                        case ("eleCold"):
+                        case ("eleLightning"):
+                        case ("eleDarkness"):
+                        case ("eleMind"):
+                        case ("elePoison"):
+                        case ("eleNether"):
+                        case ("eleSound"):
+                        case ("eleNerve"):
+                        case ("eleHoly"):
+                        case ("eleChaos"):
+                        case ("eleMagic"):
+                        case ("eleEther"):
+                        case ("eleAcid"):
+                        case ("eleCut"):
+                            sc = CreateIns("spMiasma", targetV); ;
+                            sc.setProp(
+                                type: yz_objFollw.Type.point,
+                                pPos: targetV,
+                                setColor: (elementColor * 0.7f) + new Color(0.1f, 0.1f, 0.1f),
+                                setAlpha:0.6f);
+                            break;
+                    }
                     break;
                 case EffectId.Buff:
 //                    Debug.Log("この辺にバフ処理");
