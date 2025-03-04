@@ -28,93 +28,142 @@ public class yzSwarmEvent : BaseUnityPlugin
 [HarmonyPatch(typeof(ZoneEventDefenseGame), "NextWave")]
 public class yzSE_postSpawn : BaseUnityPlugin
 {
-	static public int eventRand = 24;
+	static public int eventPoint;
+	static public int allyPoint;
+	static public string recentEvent;
     [HarmonyPostfix]
     static void Postfix(ZoneEventDefenseGame __instance)
 	{
 		int popLv = 1;//生成レベル
-		//eventRand = 1;//デバッグ用
-		if (EClass.rnd(eventRand) == 0)
+		//イベント発生ポイント初期設定
+        if (eventPoint == 0)
+        {
+			eventPoint = 1000 - (EClass.rnd(200)+(EClass._zone.DangerLv * 2).ClampMax(500));
+		}
+		if (allyPoint == 0)
 		{
-			eventRand = 24-(EClass._zone.DangerLv/10).ClampMax(20);
-			Debug.Log($"ResetEventRand:{eventRand}");
-			//イベントデータの取得
-			yz_SeStruct eventData = yz_SwarmDictionary.getEvent();
-			//効果音とついでに報酬増加処理
-			if (eventData.type == yz_ssType.center)
+			allyPoint = EClass.rnd(500) + 500;
+		}
+		//
+		eventPoint = ((int)(eventPoint * 0.9f) - (EClass.rnd(400 + (EClass._zone.DangerLv*2)) + EClass._zone.DangerLv));
+		//eventPoint = -1;//!!デバッグ用!!
+		//Debug.Log($"eventpoint:{eventPoint}");
+		if (eventPoint <= 0)
+		{
+			//群れデータ処理
+			eventPoint = 1000 - (EClass._zone.DangerLv*2).ClampMax(500);
+			swarmSpawn(yz_SwarmDictionary.getEvent());
+			//援軍処理
+			allyPoint = allyPoint - (EClass.rnd(800) + 200);
+			if (allyPoint <= 0)
 			{
+				//Debug.Log("--DicCheck?--");
+				//yz_SwarmDictionary.getEvent("Ally");
+				allyPoint = 1000;
+				swarmSpawn(yz_SwarmDictionary.getEvent("Ally"));
+            }
+		}
+		//
+		//群れ生成処理
+		void swarmSpawn(yz_SeStruct eventData)
+		{//効果音とついでに報酬増加処理
+			//ダミーデータを拾ってしまった時用
+			if(eventData.name == "dummy")
+			{
+				Msg.SetColor(Msg.colors.MutateGood);
+				Msg.SayRaw("？　何か起こる気がしたが、気のせいだった");
+				Debug.Log("===重みデータ取得エラー？===");
+				return ;
+			}
+			//援軍生成時に直近のイベントが特定のものだったら強制上書き
+			if (eventData.type == yz_ssType.ally)
+			{
+                switch (recentEvent)
+                {
+					case("cyakuza"):
+						eventData = yz_SwarmDictionary.eventDic["a_njslyr"];
+						break;
+					case ("komodoensis"):
+					case ("list_drush"):
+						eventData = yz_SwarmDictionary.eventDic["a_d51"];
+						break;
+					case ("sister"):
+					case ("fanatic"):
+						eventData = yz_SwarmDictionary.eventDic["a_sis"];
+						break;
+                }
+				//
 				__instance.bonus += 1;
 				EClass.Sound.Play("good");
+				Msg.SetColor(Msg.colors.MutateGood);
 			}
 			else
 			{
 				__instance.bonus += 3;
 				EClass.Sound.Play("spell_earthquake");
+				Msg.SetColor(Msg.colors.Ding);
 			}
 			//メッセージ出力
-			Msg.SetColor(Msg.colors.Ding);
 			Msg.SayRaw(eventData.mes);
-			//レベルの設定
+			recentEvent = eventData.name;
+			//レベルの設定、倍率0ならPCレベルor危険度
 			if (eventData.lvFixM != 0)
 			{
-				popLv = EClass._zone.DangerLv;
+				popLv = (int)Mathf.Max(((float)EClass._zone.DangerLv * eventData.lvFixM) + eventData.lvFixP, 5);
 			}
 			else
 			{
-				popLv = EClass.pc.LV;
-				eventData.lvFixM = 1;
+				popLv = (int)Mathf.Max(EClass.pc.LV + eventData.lvFixP, EClass._zone.DangerLv);
 			}
 			string popName = eventData.name;
-			popLv = (int)Mathf.Max(((float)popLv * eventData.lvFixM) + eventData.lvFixP,5);
-			//Debug.Log($"pcLv:{EClass.pc.LV}");
 			Point spawnPoint = EClass._map.bounds.GetRandomEdge(3);//マップ端のランダムなpointを取得(距離？)
-			if (eventData.type == yz_ssType.center)//中央へと上書き
-				spawnPoint = EClass._map.bounds.GetCenterPos();
+			if (eventData.type == yz_ssType.ally)//pop座標をプレイヤー近辺に上書き
+				spawnPoint = EClass.pc.pos.GetRandomNeighbor();
+			//
 			for (int i = 0; i < eventData.count; i++)
 			{
 				//スキャッターならマップ端座標を再取得
-				if(eventData.type==yz_ssType.scatter)
+				if (eventData.type == yz_ssType.scatter)
 					spawnPoint = EClass._map.bounds.GetRandomEdge(3);
-                //混合系の処理　もっとスマートにできると思う
-                switch (eventData.name)
-                {
-					case ("dogs"):
-						popName = yz_SwarmDictionary.eList_dogs.RandomItem<string>();
-						break;
-					case ("birds"):
-						popName = yz_SwarmDictionary.eList_birds.RandomItem<string>();
-						break;
-					case ("kanis"):
-						popName = yz_SwarmDictionary.eList_kanis.RandomItem<string>();
-						break;
-				}
+                //混成編成の取得
+                if (eventData.name.StartsWith("list_"))
+					popName = yz_SwarmDictionary.mixSpawnList[eventData.name].RandomItem<string>();
+				//PT系の取得
+				if(eventData.name.StartsWith("pt_"))
+					popName = yz_SwarmDictionary.allyPT[eventData.name][i];
 				//キャラクターの情報のなにがし
 				Chara chara = CharaGen.Create(popName, popLv);
 				chara.hostility = (chara.c_originalHostility = Hostility.Enemy);
 				//援軍系の処理、関係性の上書きとか
-				if (eventData.type == yz_ssType.center) { 
+				if (eventData.type == yz_ssType.ally)
+				{
 					chara.hostility = (chara.c_originalHostility = Hostility.Ally);
 					chara.c_minionType = MinionType.Default;
 					chara.c_uidMaster = EClass.pc.uid;
 					chara.master = EClass.pc;
 					chara.homeZone = EClass._zone;
-					chara.qualityTier = 4;
+					chara.qualityTier = 1;
+					chara.ChangeRarity(Rarity.Superior);
 				}
 				//生成前その他固有の処理
-                switch (eventData.name)
-                {
-					case("doppel"):
-						chara.qualityTier = 3;
+				switch (eventData.name)
+				{
+					case ("doppel"):
+						__instance.bonus += 4;
+						chara.qualityTier = 2;
+						chara.ChangeRarity(Rarity.Legendary);
+						chara.ChangeRace(EClass.pc.race.name);
 						break;
-                }
-			//キャラクターの生成
+
+				}
+				//キャラクターの生成
 				chara.SetLv(popLv);
 				Point nearestPoint = spawnPoint.GetNearestPoint(false, false, true, false);
 				EClass._zone.AddCard(chara, nearestPoint);
 				//生成後の調整
-				if (eventData.type == yz_ssType.center)
+				if (eventData.type == yz_ssType.ally)
 				{
-					chara.qualityTier = 4;
+					chara.qualityTier = 1;
 				}
 				//生成後その他固有の処理
 				switch (eventData.name)
@@ -127,14 +176,14 @@ public class yzSE_postSpawn : BaseUnityPlugin
 					case ("chicken"):
 						chara.ability.Add(6450, 80, false);//突進
 						break;
+					case ("sister")://妹援軍のリネーム
+						if (eventData.type == yz_ssType.ally)
+							chara.c_altName = $"{EClass.pc.c_altName}の狂信者";
+						break;
 				}
 			}
-        }
-        else
-        {
-			eventRand = ((int)((float)eventRand * 0.66f)).ClampMin(2);
-        }
-		//
+
+		}
 		//
 		//以下ドッペル用の処理
 		Chara statCopy(Chara chara)
@@ -221,6 +270,7 @@ public class yzSE_postSpawn : BaseUnityPlugin
 		//
 		//関数分ける必要あんまりなかったかも
 		//.Equipで無理やり装備させてるけどEQ_CATとかEQ_IDあたりのほうがよかったかもしれない
+		//一括で装備を生成する処理もどこかにありそうな気もする
 		void dpEq(ref Chara c)
 		{
 			//メインハンド武器の生成
@@ -376,5 +426,6 @@ public class yzSE_postSpawn : BaseUnityPlugin
 * 1，2桁目が属性、上記属性リストから910引いた値(0炎、1氷,2雷…)
 * 3桁目が種類、1球、2吐息、3光線、4手、5矢、6具象、7瘴気、8唄、9海
 * 4桁目は未使用、種類が追加されたときとかに使いそう？
-* 混沌の光線なら20と300で50320になるといった感じ
+* 混沌の光線なら10と300で50310になるといった感じ
+* 衝撃属性(eleImpact)はやや用途が特殊なため、使わないほうが無難かも
 */
