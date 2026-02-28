@@ -312,6 +312,10 @@ namespace yz_sss
         //デバフ付与判定、失敗でfalse
         static public bool AddDebuff(string conName,int power,Chara CC,Chara TC,bool forced=false)
         {
+            if (TC==null || TC.isDead)
+            {
+                return false;
+            }
             CC.DoHostileAction(TC, false);//敵対行動
             bool isPowerful = TC.IsPowerful;//強敵判定
             int power2 = power;
@@ -618,7 +622,8 @@ namespace yz_sss
                 );
             }
         }
-    //コルーチン実行管理用
+    //テストコルーチン実行管理用
+    //CWLの機能を使うので多分未使用
     public class CoroutineRunner : MonoBehaviour
     {
         private static CoroutineRunner ins;

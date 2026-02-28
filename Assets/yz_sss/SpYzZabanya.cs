@@ -50,10 +50,11 @@ namespace yz_sss
                 summonPoint.z += summonPoints[i].z;
                 //召喚座標
                 summonPoint = summonPoint.GetNearestPoint(false, true, true, false, 0);
+                //Debug.Log($"fixed summonPoint:{summonPoint}");
                 if (summonPoint != null && summonPoint.IsValid)
                 {
                     CardBlueprint.Set(new CardBlueprint());
-                    if (CC.LV != -1)
+                    if (CC.LV > CardBlueprint.current.lv)
                     {
                         CardBlueprint.current.lv = CC.LV;
                     }
@@ -74,7 +75,7 @@ namespace yz_sss
                     //レベル
                     minion.SetLv(CC.LV);
                     //
-                    EClass._zone.AddCard(minion, summonPoint);
+                    EClass._zone.AddCard(minion, summonPoint.Copy());
                     minion.MakeMinion(CC, MinionType.Default);
                     minion.SetSummon(28);
                     //ステータス上書き
@@ -89,13 +90,18 @@ namespace yz_sss
                     minion.elements.SetTo(133, (int)Mathf.Max(CC.Evalue(133) * 0.95f, minion.Evalue(133)));
                     minion.elements.SetTo(304, (int)Mathf.Max(CC.Evalue(304) * 0.95f, minion.Evalue(304)));
                     //
-                    YzUtil.PlayEffect("Summon3", minion, minion, summonPoint);
+                    YzUtil.PlayEffect("Summon3", minion, minion, summonPoint.Copy());
                     YzUtil.PlayEffect("Summon2", CC, minion);
                     //敵視設定
                     minion.AddCondition<ConYzLockon>();
-                    minion.enemy = targets[Random.Range(0, targets.Count)];
+                    if (targets.Count > 0)
+                    {
+                        minion.enemy = targets[Random.Range(0, targets.Count)];
+                    }
                     //minion.FindNearestNewEnemy();
                     minion.SetAIAggro();
+                    //
+                    //
                 }
 
             }

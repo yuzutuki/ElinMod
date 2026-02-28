@@ -5,6 +5,10 @@ using HarmonyLib;
 
 namespace yz_sss
 {
+	//旧仕様。
+	//現在はCWLのaddMap機能を使用するので無効化。
+	/*
+
 	[HarmonyPatch(typeof(Region),nameof(Region.CheckRandomSites))]
 	internal class CheckRandomSitesPatch
 	{
@@ -23,4 +27,5 @@ namespace yz_sss
 			}
 		}
 	}
+	*/
 }

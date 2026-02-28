@@ -6,6 +6,9 @@ namespace yz_sss
 {
     public class YzWrapper
     {
+        //カーブ関数
+        static public int Curve(long L,int start,int step,int rate = 75)
+            => EClass.curve(L, start, step, rate);
         //円形
         static public List<Point> GetCirclePoint(Point center, float radius, bool mustBeWalkable = true, bool los = true)
             => EClass._map.ListPointsInCircle(center, radius, mustBeWalkable, los);
@@ -106,17 +109,20 @@ namespace yz_sss
             //物理ダメージ用処理
             if (AS == AttackSource.Melee)
             {
+                baseDamage = PhysicsDamage(TC, baseDamage, penetration);
+                /*
                 //軽減処理
                 long penDmg = baseDamage * (long)penetration / 100L;
                 baseDamage -= penDmg;
                 baseDamage = TC.ApplyProtection(baseDamage, 100) + penDmg;
                 //
-                Debug.Log($"base:{baseDamage},pen:{penDmg},res{TC.ApplyProtection(baseDamage, 100)}");
+                //Debug.Log($"base:{baseDamage},pen:{penetration}%,{penDmg}");
                 //
                 if (CC.IsPC)
                     CC.Say("attackMelee", CC, TC, Lang.GetList("attackSlash")[0], null);
                 else
                     CC.Say("attackMelee", CC, TC, Lang.GetList("attackSlash")[4], null);
+                */
             }
             //ダメージ倍率適用
             baseDamage = (long)(baseDamage * damageMult);
@@ -128,6 +134,48 @@ namespace yz_sss
                 YzWrapper.DoHostileAction(CC,TC,true);
             }
 
+        }
+        //シンプルにダメージだけ出力版
+        static public void AddDamage(string calcID,Chara TC, int power,int eleID=0, AttackSource AS = AttackSource.None, float damageMult = 1, bool HostileAction = true, int penetration = 0)
+        {
+            if (TC == null)
+            {
+                return;
+            }
+            //ダイスの作成とロール
+            Dice dice = Dice.Create(calcID, power);
+            long baseDamage = dice.Roll();
+            Debug.Log($"=baseDamage:{baseDamage}");
+            //物理ダメージ用処理
+            if (AS == AttackSource.Melee)
+            {
+                baseDamage = PhysicsDamage(TC, baseDamage, penetration);
+            }
+            //ダメージ倍率適用
+            baseDamage = (long)(baseDamage * damageMult);
+            //ダメージ出力
+            TC.DamageHP(baseDamage,eleID);
+
+        }
+        //物理ダメージ(軽減と貫通)処理
+        static public long PhysicsDamage(Chara TC,long baseDamage,int penetration,Chara CC = null)
+        {
+            //軽減処理
+            long penDmg = baseDamage * (long)penetration / 100L;
+            baseDamage -= penDmg;
+            baseDamage = TC.ApplyProtection(baseDamage, 100) + penDmg;
+            //
+            //Debug.Log($"base:{baseDamage},pen:{penetration}%,{penDmg}");
+            //
+            if (CC != null)
+            {
+                if (CC.IsPC)
+                    CC.Say("attackMelee", CC, TC, Lang.GetList("attackSlash")[0], null);
+                else
+                    CC.Say("attackMelee", CC, TC, Lang.GetList("attackSlash")[4], null);
+            }
+            //
+            return baseDamage;
         }
 
     }
