@@ -7,7 +7,12 @@ namespace yz_sss
 {
 	public class ConYzLockon : BaseBuff
 	{
-		//ターン経過処理
+        //ロックオンマーカー表示用バフ
+        //実際の処理はAct.PerformおよびActRange.Performへのパッチで行う
+		//
+		//以下旧処理
+        //ターン経過処理
+        /*
 		public override void Tick()
 		{
 			if (owner.enemy != null)
@@ -21,5 +26,6 @@ namespace yz_sss
 				//Debug.Log("noTarget");
             }
 		}
-	}
+		*/
+    }
 }

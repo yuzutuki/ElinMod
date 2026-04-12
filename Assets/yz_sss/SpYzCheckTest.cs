@@ -8,7 +8,7 @@ namespace yz_sss
 {
     internal class SpYzCheckTest : Spell
     {
-        int i = 3;
+        int i = 1;
         public override bool Perform()
         {
             //詠唱エフェクト
@@ -77,13 +77,4 @@ namespace yz_sss
             return true;
         }
     }
- */
-/*
- * 
-            Dice dice = Dice.Create("sp_flamethrower",(int)power,null,null);
-            CC.Say($"「{dice.num}D{dice.sides}+{dice.bonus}」ぐらいのダメージが出る気がする");
- * 雑メモ
- *・データ拾ってくるときはmapじゃなくてEClass.sources.things.GetRow("")のほうが安全かも
- *・DamageEleのなんかかんやをよく調べる。
- *・addDiceで同名のclecでオーバーライド。もう一度よく調べること。
  */

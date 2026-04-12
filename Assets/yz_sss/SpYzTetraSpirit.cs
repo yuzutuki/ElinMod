@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace yz_sss
 {
-	//ƒNƒ‰ƒX–¼‚ğ•Ï‚¦‚é‚±‚ÆI
     internal class SpYzTetraSpirit : Spell
     {
         public override bool Perform()

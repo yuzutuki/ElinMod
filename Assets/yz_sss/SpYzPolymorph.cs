@@ -26,8 +26,6 @@ namespace yz_sss
             {
                 return true;
             }
-
-            //プチ変容などを参考にして書く予定
             CC.PlaySound("identify", 1f, true);
             CC.Say("yz_UsePolymorph", CC, TC, null, null);
             YzUtil.PlayEffect("Polymorph", CC, TC);

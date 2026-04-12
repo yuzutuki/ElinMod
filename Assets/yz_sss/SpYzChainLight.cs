@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace yz_sss
 {
-	//クラス名を変えること！
     internal class SpYzChainLight : Spell
     {
         public override bool Perform()
@@ -16,9 +15,13 @@ namespace yz_sss
 			if(TC == null || TC.Chara == null)
             {
 				return false;
-			}
-			//パラメータ取得
-			int mlv = YzWrapper.GetLevel(CC, this);
+            }
+            if (YzUtil.CheckFailSelf(this, CC, TC, TP))
+            {
+                return false;
+            }
+            //パラメータ取得
+            int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
 			//この辺からメイン処理

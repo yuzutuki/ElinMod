@@ -8,10 +8,12 @@ namespace yz_sss
 {
     internal class StYzAutomap : BaseStance
 	{
+        //Zone.Activateへのパッチで処理
+        /*
+        以下旧処理
 		//ターン経過処理
 		public override void Tick()
 		{
-			/*
             if (EClass._zone != zone)
 			{
 				Debug.Log("ゾーン遷移");
@@ -27,8 +29,8 @@ namespace yz_sss
 				EClass._map.Reveal(CC.pos, pow);
 			}
 			//
-			*/
 		}
-		//
-	}
+	*/
+        //
+    }
 }

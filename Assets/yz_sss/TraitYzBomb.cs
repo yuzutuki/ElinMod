@@ -10,11 +10,10 @@ namespace yz_sss
 {
     public class TraitYzBomb : Trait
     {
-        //tickカウント
+        //処理重複防止フラグ
         bool onCountdown;
         bool onExprode;
-        //
-
+        //持ち上げ不可
         public override bool CanBeHeld
         {
             get
@@ -22,6 +21,7 @@ namespace yz_sss
                 return false;
             }
         }
+        //アップデート(ターン経過)有効
         public override bool HaveUpdate
         {
             get
@@ -29,6 +29,8 @@ namespace yz_sss
                 return true;
             }
         }
+        //設置済み検出時にカウントダウン開始
+        //マップ遷移処理や何らかの要因でカウントが止まったとき用
         public override void Update()
         {
             if (this.owner.IsInstalled)
@@ -39,6 +41,8 @@ namespace yz_sss
                 }
             }
         }
+        //設置時にカウントダウン開始
+        //魔法処理の方(アイテム生成時)からも呼び出している
         public override void OnInstall(bool byPlayer)
         {
             if (!onCountdown && !onExprode)
@@ -46,6 +50,7 @@ namespace yz_sss
                 YzCountdown();
             }
         }
+        //起爆処理
         public void YzCountdown()
         {
             onCountdown = true;

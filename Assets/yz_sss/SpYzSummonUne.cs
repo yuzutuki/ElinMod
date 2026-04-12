@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace yz_sss
 {
-	//ƒNƒ‰ƒX–¼‚ğ•Ï‚¦‚é‚±‚ÆI
     internal class SpYzSummonUne : Spell
     {
         public override bool Perform()
@@ -28,10 +27,7 @@ namespace yz_sss
 			for (int i = 0; i < count; i++)
 			{
 				int radius = Mathf.CeilToInt(i / 4);
-				if (!YzUtil.SummonMinion("yz_une", CC, TP.Copy(), radius, YzUtil.LevelAdjust.Power, pow, false,20))
-				{
-					return false;
-				}
+				YzUtil.SummonMinion("yz_une", CC, TP.Copy(), radius, YzUtil.LevelAdjust.Power, pow, false, 20);
 			}
 			//
 			return true;

@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace yz_sss
 {
-	//ÉNÉâÉXñºÇïœÇ¶ÇÈÇ±Ç∆ÅI
     internal class SpYzHellfire : Spell
     {
         public override bool Perform()
@@ -19,8 +18,12 @@ namespace yz_sss
 			{
 				CC.SayNothingHappans();
 				return false;
-			}
-			//Debug.Log($"CCpos:{CC.pos},TP:{TP},dist:{TP.Distance(CC.pos)}");
+            }
+            if (YzUtil.CheckFailSelf(this, CC, TC, TP))
+            {
+                return false;
+            }
+            //Debug.Log($"CCpos:{CC.pos},TP:{TP},dist:{TP.Distance(CC.pos)}");
             if (TP.Distance(CC.pos)==0)
 			{
 				CC.SayNothingHappans();

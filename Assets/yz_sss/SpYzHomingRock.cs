@@ -21,7 +21,7 @@ namespace yz_sss
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
 			//Œø‰Ê‰¹(”­“®)‚ÌÄ¶
-			CC.PlaySound("identify", 1f, true);
+			//CC.PlaySound("identify", 1f, true);
 			//‚±‚Ì•Ó‚©‚çƒƒCƒ“ˆ—
 			List<Point> points = YzWrapper.GetCirclePoint(CC.pos, 6, false, false);
 			List<Chara> tempTargets = YzUtil.AvoidFriendlyFire(CC, points);
@@ -29,6 +29,7 @@ namespace yz_sss
 			if (tempTargets.Count <= 0)
 			{
 				CC.SayNothingHappans();
+				CC.Say("yz_fail_HomingRock");
 				return false;
 			}
 			//

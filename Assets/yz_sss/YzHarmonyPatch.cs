@@ -6,8 +6,12 @@ using HarmonyLib;
 
 namespace yz_sss
 {
-	//ゾーン読み込み時
-	[HarmonyPatch(typeof(Zone), nameof(Zone.Activate))]
+    //分割して各パッチはPatch～に。
+    //ごく短いものはここでまとめるかも。
+    //
+    /*
+    //ゾーン読み込み時
+    [HarmonyPatch(typeof(Zone), nameof(Zone.Activate))]
 	internal class ZoneActivatePatch
 	{
 		[HarmonyPostfix]
@@ -33,7 +37,7 @@ namespace yz_sss
 						Msg.Say("noSpellStock");
 						c.RemoveCondition<StYzAutomap>();
 						return;
-                    }
+					}
 					mm.vPotential -= 1;
 					tl.vPotential -= 1;
 					int cost = mm.GetCost(c).cost + tl.GetCost(c).cost;
@@ -53,9 +57,10 @@ namespace yz_sss
 			}
 		}
 	}
-	//
-	//サバーニャ用
-	//雑なパッチの当て方かもしれない
+	*/
+    //
+    //サバーニャ用
+    /*
 	[HarmonyPatch(typeof(Act),nameof(Act.Perform))]
 	[HarmonyPatch(new Type[] { })]
 	internal class ActPerformPatch
@@ -81,5 +86,6 @@ namespace yz_sss
 			
 		}
 	}
-	//
+	*/
+    //
 }

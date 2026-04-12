@@ -35,17 +35,17 @@ namespace yz_sss
 		public override void Tick()
 		{
 			//
-			int recoverMana = Mathf.Max((int)Mathf.Round(CC.mana.max * 0.01f),1);
+			int recoverMana = Mathf.Max((int)Mathf.Round(this.owner.mana.max * 0.01f),1);
 			switch (lv)
 			{
 				case 1:
-					CC.mana.Mod(recoverMana*1);
+					this.owner.mana.Mod(recoverMana*1);
 					break;
 				case 2:
-					CC.mana.Mod(recoverMana*2);
+					this.owner.mana.Mod(recoverMana*2);
 					break;
 				case 3:
-					CC.mana.Mod(recoverMana*5);
+					this.owner.mana.Mod(recoverMana*5);
 					break;
 				default:
 					break;
@@ -58,13 +58,6 @@ namespace yz_sss
 			}
 		}
         //
-		/*
-        public override void OnRemoved()
-        {
-            base.OnRemoved();
-			//this.owner.elements.ModBase(411, -50*lv);
-		}
-		*/
         //ä«óùóp
         [JsonProperty]
 		public int turn;

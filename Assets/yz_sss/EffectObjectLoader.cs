@@ -9,9 +9,6 @@ using NPOI.XSSF.UserModel;
 
 namespace yz_sss
 {
-    //ShinySpellの読み込み部分を改良
-    //取得したオブジェクト名からスクリプトアタッチなどを決める
-    //*CodeRabbit*とか使ってみるべきかも
     public class EffData
     {
         public string id;
@@ -23,6 +20,7 @@ namespace yz_sss
         public bool lookTarget;
         public bool arrowHold;
         public bool deviation;
+        public bool exAction;
         public string afterEffect;
         //空コンストラクタ
         public EffData() { }
@@ -38,6 +36,7 @@ namespace yz_sss
             lookTarget = o.lookTarget;
             arrowHold = o.arrowHold;
             deviation = o.deviation;
+            exAction = o.exAction;
             afterEffect = o.afterEffect;
         }
         //クローン
@@ -73,7 +72,7 @@ namespace yz_sss
             //読み込みテスト
             if (YzSSS.effDic.TryGetValue("CheckTest", out EffData loadtest))
             {
-                Debug.Log($"読み込みテスト:{loadtest.id},{loadtest.type},{loadtest.tag},{loadtest.colorFix}");
+                //Debug.Log($"読み込みテスト:{loadtest.id},{loadtest.type},{loadtest.tag},{loadtest.colorFix}");
             }
             //アセットバンドル読み込み
             AssetBundle ab;
@@ -159,6 +158,7 @@ namespace yz_sss
                     data.lookTarget = GetCellString(row, 2).Contains("LookTarget");
                     data.arrowHold = GetCellString(row, 2).Contains("ArrowHold");
                     data.deviation = GetCellString(row, 2).Contains("Deviation");
+                    data.exAction = GetCellString(row, 2).Contains("ExAction");
                     //追加エフェクト処理
                     data.afterEffect = GetCellString(row, 6);
                     //登録

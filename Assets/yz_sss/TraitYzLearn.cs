@@ -6,8 +6,9 @@ namespace yz_sss
 {
     public class TraitYzLearn : Trait
 	{
-		//概ねTraitBookSkillからのコピー
-		public override bool CanRead(Chara c)
+        //スキル習得本用のTrait
+        //概ねTraitBookSkillからのコピー
+        public override bool CanRead(Chara c)
 		{
 			return !c.isBlind;
 		}

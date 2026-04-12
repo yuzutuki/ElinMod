@@ -22,11 +22,8 @@ namespace yz_sss
 			// ele = YzWrapper.GetElement(this, pow);
 			//Œø‰Ê‰¹(”­“®)‚ÌÄ¶
 			CC.PlaySound("identify", 1f, true);
-            //‚±‚Ì•Ó‚©‚çƒƒCƒ“ˆ—
-            if (!YzUtil.SummonMinion("yz_SwordFamiliar", CC, TP.Copy(), 1, YzUtil.LevelAdjust.Average, pow,true))
-            {
-				return false;
-            }
+			//‚±‚Ì•Ó‚©‚çƒƒCƒ“ˆ—
+			YzUtil.SummonMinion("yz_SwordFamiliar", CC, TP.Copy(), 1, YzUtil.LevelAdjust.Average, pow, true);
 			//
 			//YzWrapper.PlayVanillaEffect(ele, TC.pos,1f);
 			//

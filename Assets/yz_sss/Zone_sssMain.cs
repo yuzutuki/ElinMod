@@ -5,8 +5,7 @@ using System.IO;
 using System.Reflection;
 
 namespace yz_sss {
-	//マップ配置用
-	//シンプルな追加なら、xlsxのほうにaddMapをタグで問題なさそう?
+	//マップパラメータ
 	
 	public class Zone_sssMain : Zone_Civilized
 	{

@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace yz_sss
 {
-	//クラス名を変えること！
     internal class SpYzSoulSteal : Spell
     {
         public override bool Perform()
@@ -21,8 +20,14 @@ namespace yz_sss
 			int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
-			//効果音(発動時)の再生
-			CC.PlaySound("ab_swarm", 0f, true);
+            //技名表示
+            if (CC.IsPC && ModConfig.SpPop.Value)
+            {
+                string name = this.Name;
+                CC.renderer.Say("| " + name + " ", default(Color), 0f);
+            }
+            //効果音(発動時)の再生
+            CC.PlaySound("ab_swarm", 0f, true);
 			//この辺からメイン処理
 			//吸血鬼チェック
 			float dmgFix = 1;

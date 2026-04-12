@@ -15,15 +15,20 @@ namespace yz_sss
 			if(TC == null || TC.Chara == null)
             {
 				return false;
-			}
-			//パラメータ取得
-			int pow = YzWrapper.GetPower(CC, this);
+            }
+            if (YzUtil.CheckFailSelf(this, CC, TC, TP))
+            {
+                return false;
+            }
+            //パラメータ取得
+            int pow = YzWrapper.GetPower(CC, this);
 			Element ele = Element.Create(base.source.aliasRef, pow / 10);
             //エフェクト再生
 			YzUtil.PlayEffect("Grab", CC, TC);
-			YzWrapper.PlayVanillaEffect(ele, TC.pos,0.1f);
-			CC.PlaySound("kick", 1f, true);
-			CC.PlaySound("elevator", 1f, true);
+			YzUtil.ShowEffectiveArea(TC.pos);
+            CC.PlaySound("throw", 1f, true);
+            CC.PlaySound("kick", 1f, true);
+			CC.PlaySound("elevator", 0.3f, true);
 			//移動処理
 			if (CC.Dist(TC) > 1)
 			{
@@ -35,9 +40,13 @@ namespace yz_sss
 				YzUtil.PushChara(TC.Chara, point);
 			}
 			//ダメージ出力
-			YzUtil.AddDebuff("ConParalyze", 20 + pow / 150, CC, TC.Chara, false);
-			YzWrapper.DoHostileAction(CC, TC, true);
-			YzWrapper.AddDamage(this, CC, TC.Chara, pow, ele);
+			if (!TC.IsPCFactionOrMinion)
+            {
+                YzWrapper.PlayVanillaEffect(ele, TC.pos, 0.1f);
+                YzUtil.AddDebuff("ConParalyze", 20 + pow / 150, CC, TC.Chara, false);
+				YzWrapper.DoHostileAction(CC, TC, true);
+				YzWrapper.AddDamage(this, CC, TC.Chara, pow, ele);
+			}
 			//
 			return true;
         }

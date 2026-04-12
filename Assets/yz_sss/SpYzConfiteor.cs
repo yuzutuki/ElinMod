@@ -35,16 +35,18 @@ namespace yz_sss
 			//ダメージ出力やエフェクトは適宜入れ替える
 			//
 			float radius = 2;
-			//エフェクト再生
+            //エフェクト再生
+            string msg = this.Name;
             switch (buffLevel)
             {
 				case 0:
-					YzUtil.PlayEffect("Confiteor1", CC, TC, TP);
+                    YzUtil.PlayEffect("Confiteor1", CC, TC, TP);
 					powFix = 1f;
 					YzUtil.DelayPlaySound("ab_swarm", CC, 8, 0.8f, false);
 					break;
 				case 1:
-					YzUtil.PlayEffect("Confiteor2", CC, TC, TP);
+                    msg = Msg.GetGameText("yz_Confi2");
+                    YzUtil.PlayEffect("Confiteor2", CC, TC, TP);
 					powFix = 1.52f;
 					for (int i=0; i < 6; i++)
 					{
@@ -52,7 +54,8 @@ namespace yz_sss
 					}
 					break;
 				case 2:
-					YzUtil.PlayEffect("Confiteor3", CC, TC, TP);
+                    msg = Msg.GetGameText("yz_Confi3");
+                    YzUtil.PlayEffect("Confiteor3", CC, TC, TP);
 					powFix = 1.76f;
 					radius = 2.5f;
 					YzUtil.DelayPlaySound("ab_shred", CC, 11, 1f, false);
@@ -60,7 +63,8 @@ namespace yz_sss
 					YzUtil.DelayPlaySound("ab_shred", CC, 13, 1f, false);
 					break;
 				case 3:
-					YzUtil.PlayEffect("Confiteor4", CC, TC, TP);
+                    msg = Msg.GetGameText("yz_Confi4");
+                    YzUtil.PlayEffect("Confiteor4", CC, TC, TP);
 					powFix = 2f;
 					radius = 3f;
 					YzUtil.DelayPlaySound("ab_shred2", CC, 10, 0.7f, false);
@@ -70,8 +74,13 @@ namespace yz_sss
 				default:
 					break;
             }
-			//
-			Debug.Log($"lv:{buffLevel},fix:{powFix},pow:{(int)(pow*powFix)}");
+            //技名表示
+            if (CC.IsPC && ModConfig.SpPop.Value)
+            {
+                CC.renderer.Say("| " + msg + " ", default(Color), 0f);
+            }
+            //
+            Debug.Log($"lv:{buffLevel},fix:{powFix},pow:{(int)(pow*powFix)}");
 			//範囲とターゲット取得
 			List<Point> points = YzWrapper.GetCirclePoint(TP, radius, false, false);
 			List<Chara> targets = YzUtil.AvoidFriendlyFire(CC, points);

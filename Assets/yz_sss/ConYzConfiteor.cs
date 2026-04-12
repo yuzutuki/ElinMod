@@ -46,7 +46,7 @@ namespace yz_sss
 		//
         public override void OnRemoved()
         {
-			CC.AddCooldown(720030, 300);
+			this.owner.AddCooldown(720030, 300);
 			base.OnRemoved();
 		}
 		//ä«óùóp

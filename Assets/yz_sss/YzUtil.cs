@@ -1,15 +1,23 @@
+using Cwl.Helper;
+using Cwl.Helper.Unity;
+using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Reflection;
-using Cwl.Helper.Unity;
+using UnityEngine;
+using static Season;
+using static UnityEditor.PlayerSettings;
 
+//
+//汎用的な処理をまとめるクラス
+//散らかってきたので分割するべきかも
 
 namespace yz_sss
 {
+    //エフェクトの移動などのタイプ
     public enum EffType
     {
         self,
@@ -21,13 +29,14 @@ namespace yz_sss
         stretch,
         accelerate,
         accR,
-        homing
+        homing,
+        parabola
     }
     static public class YzUtil
     {
 
         //エフェクトの再生
-        public static void PlayEffect(string key, Card CC, Card TC = null ,Point TP = null,string replaceAffterEffect = null)
+        public static void PlayEffect(string key, Card CC, Card TC = null, Point TP = null, string replaceAffterEffect = null, ExActionData actionData = default)
         {
             // エフェクトのPrefab取得
             if (!YzSSS.objDic.TryGetValue(key, out GameObject prefab))
@@ -42,6 +51,13 @@ namespace yz_sss
                 Debug.Log("エフェクトデータの取得に失敗");
                 return;
             }
+            /*
+            if (TC == null || TC.isDestroyed)
+            {
+                Debug.Log($"ターゲットnull or destroy:{key}");
+                return;
+            }
+            */
 
             // 基準位置を計算
             Vector3 setPos = new Vector3();
@@ -51,14 +67,14 @@ namespace yz_sss
                     setPos = CharaCenter(TC);
                     break;
                 case EffType.accR:
-                    if(TP != null)
-                       setPos = TP.PositionCenter();
+                    if (TP != null)
+                        setPos = CharaCenter(TP);
                     else
                         setPos = CharaCenter(TC);
                     break;
                 case EffType.point:
                     if (TP != null)
-                        setPos = TP.PositionCenter();
+                        setPos = CharaCenter(TP);
                     else
                         setPos = CharaCenter(TC);
                     break;
@@ -68,7 +84,7 @@ namespace yz_sss
             }
             //Debug.Log($"checkVec: c:{CharaCenter(CC)},t:{TP?.PositionCenter()}");
             // インスタンス生成
-            GameObject obj = UnityEngine.Object.Instantiate(prefab, setPos, Quaternion.Euler(0,0,0));
+            GameObject obj = UnityEngine.Object.Instantiate(prefab, setPos, Quaternion.Euler(0, 0, 0));
             // エフェクト制御コンポーネントの設定
             if (obj.TryGetComponent<EffectObjectController>(out var oc))
             {
@@ -76,16 +92,17 @@ namespace yz_sss
                 oc.tc = TC;
                 oc.tp = TP?.Copy();
                 oc.ed = data.Clone();
+                oc.actionData = actionData;
             }
             else
             {
                 Debug.Log($"制御スクリプト取得失敗？: {obj.name}");
             }
+            //追加エフェクト
             if (replaceAffterEffect != null)
             {
                 oc.ed.afterEffect = replaceAffterEffect;
             }
-
             //Debug.Log($"PlayEffect: {obj.name}");
         }
         //基準点取得用
@@ -123,8 +140,15 @@ namespace yz_sss
             {
                 v3 = c.renderer.PositionCenter();
             }
-            v3.z -= 20;
+            v3.z -= 50;
             return (v3);
+        }
+        static public Vector3 CharaCenter(Point p)
+        {
+            Vector3 v3 = p.Copy().PositionCenter();
+            v3 += new Vector3(0.05f, 0.35f, -150f);
+            return v3;
+
         }
         //PointAからBへの隣接マス取得
         //隣接マス取得用
@@ -139,7 +163,7 @@ namespace yz_sss
             new Point(0,-1),
             new Point(1,-1)
         };
-        static public Point GetStepTowards(Point CP,Point TP)
+        static public Point GetStepTowards(Point CP, Point TP)
         {
             Vector2 direction = new Vector2(TP.x - CP.x, TP.z - CP.z);
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
@@ -147,12 +171,12 @@ namespace yz_sss
             if (snap < 0) snap += 360f;
             int index = Mathf.RoundToInt(snap / 45f) % 8;
             return new Point(CP.x + angleToPoint[index].x, CP.z + angleToPoint[index].z);
-         }
+        }
         //
         //effDataからTypeの取得
         static public EffType ToType(string name)
         {
-            if (Enum.TryParse<EffType>(name,ignoreCase:true, out EffType type))
+            if (Enum.TryParse<EffType>(name, ignoreCase: true, out EffType type))
             {
                 return type;
             }
@@ -187,11 +211,11 @@ namespace yz_sss
         }
         //
         //PointからVector3
-        static public Vector3 PointToVector3(Point o,float z = 0)
+        static public Vector3 PointToVector3(Point o, float z = 0)
         {
             Point p = o.Copy();
             Vector3 v = p.Position(0);
-            if(z!=0) v.z = z;
+            if (z != 0) v.z = z;
             return v;
         }
         //Vectorからポイント
@@ -218,10 +242,43 @@ namespace yz_sss
             Debug.Log($"noFriendlyFire:{ar.noFriendlyFire}");
 
         }
-        //Actの確認
-        static public void CheckAct(Act a)
+        //自己対象不可処理、trueなら詠唱失敗
+        static public bool CheckFailSelf(Spell SP, Card CC, Card TC, Point TP)
         {
-
+            if (!ModConfig.SelfCastLock.Value)
+            {
+                return false;
+            }
+            string tg = SP.source.target;
+            bool fail = false;
+            //Debug.Log($"tg:{tg}, CC.pos:{CC.pos}, TP:{TP},CC.uid:{CC.uid}, TC.uid:{TC?.uid}");
+            switch (tg) {
+                case "Ground":
+                case "Neighbor":
+                    if (TP.Equals(CC.pos))
+                    {
+                        fail = true;
+                    }
+                    break;
+                case "Chara":
+                    if (CC.uid == TC?.uid)
+                    {
+                        fail = true;
+                    }
+                    break;
+                case "Self":
+                default:
+                    fail = false;
+                    break;
+            }
+            if (fail)
+            {
+                CC.SayNothingHappans();
+                CC.Say("yz_fail_Self");
+                CC.PlaySound("fizzle");
+                return true;
+            }
+            return false;
         }
         //ミニオン召喚
         public enum LevelAdjust
@@ -231,7 +288,7 @@ namespace yz_sss
             Power,
             Static
         }
-        static public bool SummonMinion(string summonID, Chara caster, Point _tp, int radius = 1,LevelAdjust adjust = LevelAdjust.Same,int power = 100,bool uniqueSummon = false,int lifeTime=-1)
+        static public Chara SummonMinion(string summonID, Chara caster, Point _tp, int radius = 1, LevelAdjust adjust = LevelAdjust.Same, int power = 100, bool uniqueSummon = false, int lifeTime = -1)
         {
             Point tp = _tp.Copy();
             Chara minion;
@@ -241,7 +298,7 @@ namespace yz_sss
             if (EClass._zone.CountMinions(caster) >= caster.MaxSummon || caster.c_uidMaster != 0)
             {
                 caster.Say("summon_ally_fail", caster, null, null);
-                return false;
+                return null;
             }
             //重複チェック
             if (uniqueSummon)
@@ -253,7 +310,7 @@ namespace yz_sss
                         if (chara.id == summonID)
                         {
                             caster.Say("yz_UniqueSummonFail");
-                            return false;
+                            return null;
                         }
                     }
                 }
@@ -265,7 +322,7 @@ namespace yz_sss
             if (point == null || !point.IsValid)
             {
                 caster.SayNothingHappans();
-                return false;
+                return null;
             }
             //
             CardBlueprint.Set(new CardBlueprint());
@@ -289,30 +346,43 @@ namespace yz_sss
                     minionLv.Clamp(1, caster.LV * 2);
                     break;
                 case (LevelAdjust.Average):
-                    minionLv = ((power / 10)+caster.LV)/2;
+                    minionLv = ((power / 10) + caster.LV) / 2;
                     minionLv.Clamp(1, caster.LV * 4);
                     break;
             }
             //
             minion.interest = 0;
             minion.SetLv(minionLv);
-            //
-            EClass._zone.AddCard(minion, point);
+            //実体化
+            Card c = EClass._zone.AddCard(minion, point);
+            //ミニオン属性付与
             minion.MakeMinion(caster, MinionType.Default);
             if (lifeTime != -1)
             {
                 minion.SetSummon(lifeTime);
             }
+            //その他固有処理
+            //Debug.Log($"SumonID:{summonID},Lv:{minion.LV},Power:{power}");
+            switch (summonID)
+            {
+                case "yz_SIR":
+                    //Debug.Log("SummonSIR");
+                    YzUtil.PlayEffect("Summon4", minion, minion, point);
+                    caster.Say("yz_summon_SIR");
+                    break;
+                default:
+                    //Debug.Log("SummonDefault");
+                    YzUtil.PlayEffect("Summon1", minion, minion, point);
+                    break;
+            }
             //
-            YzUtil.PlayEffect("Summon1", minion, minion, point);
-            //
-            return true;
+            return c.Chara;
         }
-            //
+        //
         //デバフ付与判定、失敗でfalse
-        static public bool AddDebuff(string conName,int power,Chara CC,Chara TC,bool forced=false)
+        static public bool AddDebuff(string conName, int power, Chara CC, Chara TC, bool forced = false)
         {
-            if (TC==null || TC.isDead)
+            if (TC == null || TC.isDead)
             {
                 return false;
             }
@@ -345,7 +415,7 @@ namespace yz_sss
         }
         //
         //キャラクター押しのけ
-        static public void PushChara(Chara main,Point p)
+        static public void PushChara(Chara main, Point p)
         {
             List<Chara> cl = p.ListCharas();
             if (cl.Count > 1)
@@ -365,8 +435,8 @@ namespace yz_sss
         //吸血鬼チェック
         static public bool CheckVamp(Chara chara)
         {
-            if(chara.race.id == "vampire" ||
-                chara.race.id == "succubus" || 
+            if (chara.race.id == "vampire" ||
+                chara.race.id == "succubus" ||
                 chara.HasElement(1216) ||
                 chara.HasElement(1250))
                 return true;
@@ -374,37 +444,29 @@ namespace yz_sss
         }
         //巻き込みチェック
         //複数座標判定
-        static public List<Chara> AvoidFriendlyFire(Card caster,List<Point> tps)
+        static public List<Chara> AvoidFriendlyFire(Card caster, List<Point> tps)
         {
             List<Chara> tcl = new List<Chara>();
             foreach (Point p in tps)
             {
                 tcl = tcl.Union(p.ListCharas()).ToList();
             }
-            /*
-            foreach (Chara c in tcl)
-            {
-                Debug.Log(c.Name);
-            }
-            Debug.Log("avoidFF..");
-            */
             tcl.RemoveAll(target => YzUtil.AvoidFriendlyFire(caster, target));
-            /*
-            foreach (Chara c in tcl)
-            {
-                Debug.Log(c.Name);
-            }
-            */
             return tcl;
 
         }
         //単体判定
-        static public bool AvoidFriendlyFire(Card caster,Card target)
+        static public bool AvoidFriendlyFire(Card caster, Card target)
         {
             Card o = caster;
             Card t = target;
             //例外:ターゲット不明、対象がキャラではない
             if (t == null || !t.isChara || !o.isChara)
+            {
+                return false;
+            }
+            //例外：ターゲットが死んでいる
+            if (t.Chara.isDead || t.Chara.isDestroyed)
             {
                 return false;
             }
@@ -414,7 +476,7 @@ namespace yz_sss
                 return true;
             }
             //リトルシスター除外
-            if(t.Chara.id == "littleOne")
+            if (t.Chara.id == "littleOne")
             {
                 return true;
             }
@@ -443,14 +505,14 @@ namespace yz_sss
             return false;
         }
         //直線座標取得
-        static public List<Point> LinePoints(Point origin,Point target,float range,bool ignoreOrigin = true)
+        static public List<Point> LinePoints(Point origin, Point target, float range, bool ignoreOrigin = true)
         {
             List<Point> targetPoints = new List<Point>();
             Vector2 ov = PointToVector2(origin.Copy());
-            Vector2 tv = PointToVector2(target.Copy());            
+            Vector2 tv = PointToVector2(target.Copy());
             Vector2 dir = (tv - ov);
             dir.Normalize();
-            float angleDeg = Mathf.Atan2(dir.y, dir.x)*Mathf.Rad2Deg;
+            float angleDeg = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             float a = Mathf.Abs(Mathf.DeltaAngle(angleDeg, 0f));
             if (a > 90f) a = 180 - a;
             float tnorm = a / 90f;
@@ -462,21 +524,21 @@ namespace yz_sss
             Vector2 current = ov;
             for (int i = 0; i < steps; i++)
             {
-                current += (dir*0.25f);
+                current += (dir * 0.25f);
                 Point add = VectorToPoint(current);
                 //Debug.Log($"dir:{dir},current:{current},addPoint:{add}");
                 if (!add.IsValid)
                     break;
                 if (targetPoints.Contains(add))
                     continue;
-                if(ignoreOrigin && target == origin)
+                if (ignoreOrigin && target == origin)
                     continue;
                 targetPoints.Add(add.Copy());
             }
             return targetPoints;
         }
         //最も遠いキャラ
-        static public Chara GetFarthestChara(Point origin,List<Chara> charas)
+        static public Chara GetFarthestChara(Point origin, List<Chara> charas)
         {
             return charas.OrderByDescending(c =>
             {
@@ -499,12 +561,13 @@ namespace yz_sss
         }
         //float距離ソート
         //int距離はPoint.Distanceを使う
-        static public List<Point> DistanceSort(Point origin,List<Point> points)
+        static public List<Point> DistanceSort(Point origin, List<Point> points)
         {
             Point o = origin.Copy();
             Vector2 ov = new Vector2(o.x, o.z);
             List<Point> result = points;
-            result.Sort((a, b) => {
+            result.Sort((a, b) =>
+            {
                 Vector2 av = new Vector2(a.x, a.z);
                 Vector2 bv = new Vector2(b.x, b.z);
                 float distA = (av - ov).sqrMagnitude;
@@ -519,7 +582,8 @@ namespace yz_sss
             Point o = origin.Copy();
             Vector2 ov = new Vector2(o.x, o.z);
             List<Chara> result = charas;
-            result.Sort((a, b) => {
+            result.Sort((a, b) =>
+            {
                 Vector2 av = new Vector2(a.pos.x, a.pos.z);
                 Vector2 bv = new Vector2(b.pos.x, b.pos.z);
                 float distA = (av - ov).sqrMagnitude;
@@ -530,7 +594,7 @@ namespace yz_sss
             return result;
         }
         //効果範囲表示
-        static public void ShowEffectiveArea(List<Point> points,bool delay = false)
+        static public void ShowEffectiveArea(List<Point> points, bool delay = false)
         {
             int count = 0;
             foreach (Point p in points)
@@ -544,84 +608,65 @@ namespace yz_sss
                         vEff.Play(p.Copy());
                     },
                     count);
-                if(delay) count++;
+                if (delay) count++;
             }
 
         }
         //単体Point用
         static public void ShowEffectiveArea(Point point, int delay = 0)
         {
-                CoroutineHelper.Deferred(
-                    () =>
-                    {
-                        Effect vEff = Effect.Get("effectiveArea");
-                        vEff.posFix.z += 2;
-                        vEff.duration = 0.3f;
-                        vEff.Play(point.Copy());
-                    },
-                    delay);
+            CoroutineHelper.Deferred(
+                () =>
+                {
+                    Effect vEff = Effect.Get("effectiveArea");
+                    vEff.posFix.z += 2;
+                    vEff.duration = 0.3f;
+                    vEff.Play(point.Copy());
+                },
+                delay);
         }
         //CWLのコルーチンを使った遅延再生、Delayはフレーム数
-        //効果音遅延再生
-        static public void DelayPlaySound(string id, Card origin, int delay, float v = 1f,bool spatial = true)
-        {
-            Zone calledZone = EClass._zone;
-            CoroutineHelper.Deferred(
-                () => {
-                    if (calledZone != EClass._zone)return;
-                    origin.PlaySound(id, v, spatial);
-                    },
-                delay
-                );
-        }
-        //エフェクト遅延再生
-        static public void DelayPlayEffect(int delay, string id, Card CC,Card TC,Point TP=null, string AffterEffect = null)
-        {
-            Zone calledZone = EClass._zone;
-            CoroutineHelper.Deferred(
-                () => {
-                    if (calledZone != EClass._zone)return;
-                    YzUtil.PlayEffect(id, CC, TC, TP.Copy(),AffterEffect);
-                },
-                delay
-                );
-        }
-        //バニラのエフェクト遅延再生(デフォのDelayと別)
-        static public void DelayVanilaEffect(int delay,Element EL,Point TP)
-        {
-            Zone calledZone = EClass._zone;
-            CoroutineHelper.Deferred(
-                () => {
-                    if (calledZone != EClass._zone) return;
-                    YzWrapper.PlayVanillaEffect(EL, TP);
-                },
-                delay
-                );
-        }
-        static public void DelayVanilaEffect(int delay, String ID, Point TP)
-        {
-            Zone calledZone = EClass._zone;
-            CoroutineHelper.Deferred(
-                () => {
-                    if (calledZone != EClass._zone) return;
-                    YzWrapper.PlayVanillaEffect(ID, TP);
-                },
-                delay
-                );
-        }
-        //ダメージ遅延発生
-        static public void DelayAddDamage(int delay, Spell SP, Chara CC, Chara TC, int power, Element EL, int eleMod = 0, AttackSource AS = AttackSource.None, float damageMult = 1)
+        //汎用
+        static public void DelayAction(Action action, int delay)
         {
             Zone calledZone = EClass._zone;
             CoroutineHelper.Deferred(
                 () =>
                 {
-                    if (calledZone != EClass._zone) return;
-                    YzWrapper.AddDamage(SP, CC, TC, power, EL, eleMod, AS,damageMult);
-                }, delay
+                    if (EClass.scene.mode != Scene.Mode.Zone)
+                        return;
+                    if (EClass._zone == null || EClass._zone != calledZone)
+                        return;
+                    action.Invoke();
+                },
+                delay
                 );
-            }
         }
+        //効果音遅延再生
+        static public void DelayPlaySound(string id, Card origin, int delay, float v = 1f, bool spatial = true)
+        {
+            DelayAction(() => origin.PlaySound(id, v, spatial), delay);
+        }
+        //エフェクト遅延再生
+        static public void DelayPlayEffect(int delay, string id, Card CC, Card TC, Point TP = null, string AffterEffect = null)
+        {
+            DelayAction(() => YzUtil.PlayEffect(id, CC, TC, TP.Copy(), AffterEffect), delay);
+        }
+        //バニラのエフェクト遅延再生(デフォのDelayと別)
+        static public void DelayVanilaEffect(int delay, Element EL, Point TP)
+        {
+            DelayAction(() => YzWrapper.PlayVanillaEffect(EL, TP.Copy()), delay);
+        }
+        static public void DelayVanilaEffect(int delay, String ID, Point TP)
+        {
+            DelayAction(() => YzWrapper.PlayVanillaEffect(ID, TP.Copy()), delay);
+        }
+        //ダメージ遅延発生
+        static public void DelayAddDamage(int delay, Spell SP, Chara CC, Chara TC, int power, Element EL, int eleMod = 0, AttackSource AS = AttackSource.None, float damageMult = 1)
+        {
+            DelayAction(() => YzWrapper.AddDamage(SP, CC, TC, power, EL, eleMod, AS, damageMult), delay);
+        }
+    }
     //テストコルーチン実行管理用
     //CWLの機能を使うので多分未使用
     public class CoroutineRunner : MonoBehaviour
@@ -641,5 +686,6 @@ namespace yz_sss
             }
         }
     }
+    //
 }
 

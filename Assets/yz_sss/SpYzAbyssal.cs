@@ -16,6 +16,10 @@ namespace yz_sss
             {
                 return false;
             }
+            if (YzUtil.CheckFailSelf(this, CC, TC, TP))
+            {
+                return false;
+            }
             //ƒpƒ‰ƒ[ƒ^æ“¾
             int mlv = YzWrapper.GetLevel(CC, this);
             int pow = YzWrapper.GetPower(CC, this);

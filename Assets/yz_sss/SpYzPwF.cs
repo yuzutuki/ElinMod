@@ -15,10 +15,14 @@ namespace yz_sss
 			//対象不明なら終了
 			if(TC == null || TC.Chara == null)
             {
-				return true;
-			}
-			//パワー取得
-			int pow = YzWrapper.GetPower(CC, this);
+				return false;
+            }
+            if (YzUtil.CheckFailSelf(this, CC, TC, TP))
+            {
+                return false;
+            }
+            //パワー取得
+            int pow = YzWrapper.GetPower(CC, this);
 			//エレメント取得
 			Element ele = YzWrapper.GetElement(this, pow);
 			//バフ管理

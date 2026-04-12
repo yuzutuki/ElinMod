@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace yz_sss
 {
-	internal class SpYzFrostbomb : Spell
+    //未使用、コルーチンテスト用
+    //作り直すかも
+    internal class SpYzFrostbomb : Spell
 	{
 		public override bool Perform()
 		{

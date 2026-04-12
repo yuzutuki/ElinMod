@@ -4,23 +4,18 @@ using UnityEngine;
 
 namespace yz_sss
 {
-    //クラス名を変えること！
     internal class SpYzBomb : Spell
     {
         public override bool Perform()
         {
             //詠唱エフェクトとウェイト
-            EClass.Wait(0.5f, CC);
+            EClass.Wait(0.2f, CC);
             CastEffect.Call(CC);
-            //対象不明なら終了
-            if (TC == null || TC.Chara == null)
-            {
-                return false;
-            }
+            //重ねて置くの防止
             TraitYzBomb check = CC.pos.FindThing<TraitYzBomb>();
             if (check != null)
             {
-                Debug.Log("-=( ) detectBomb");
+                //Debug.Log("-=( ) detectBomb");
                 CC.SayNothingHappans();
                 return false;
             }
@@ -32,16 +27,12 @@ namespace yz_sss
             CC.PlaySound("Material/rock_drop", 1f, true);
             CC.PlaySound("Material/wood_drop", 0.3f, true);
             //この辺からメイン処理
-            //ダメージ出力やエフェクトは適宜入れ替える
-            //
-            //設置
             //Thing作成
             Thing t = ThingGen.Create("YzBomb");
             t.LV = 5;
             t.c_fixedValue = pow;
             EClass._zone.AddCard(t, CC.pos).Install();
             t.trait.OnInstall(true);
-
             //
             return true;
         }

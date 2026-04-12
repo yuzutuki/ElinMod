@@ -5,40 +5,42 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Cwl.Helper.Unity;
+using EvilMask.Elin.ModOptions;
+using EvilMask.Elin.ModOptions.UI;
+using UnityEngine.UI;
 
 namespace yz_sss
 {
 
-	[BepInPlugin("yuzutuki.yzSSS", "SSS", "1.0.0.0")]
-	public class YzSSS : BaseUnityPlugin
-	{
-		static public Dictionary<string, GameObject> objDic = new Dictionary<string, GameObject>();
-		static public Dictionary<string, EffData> effDic = new Dictionary<string, EffData>();
+    [BepInPlugin("yuzutuki.yzSSS", "SSS", "1.0.0.0")]
+    public class YzSSS : BaseUnityPlugin
+    {
+        static public Dictionary<string, GameObject> objDic = new Dictionary<string, GameObject>();
+        static public Dictionary<string, EffData> effDic = new Dictionary<string, EffData>();
+        internal const string ModOptionsGuid = "evilmask.elinplugins.modoptions";
+        static public string guid = "yuzutuki.yzSSS";
 
-
-		private void Awake()
-		{
-			var harmony = new Harmony("yz_SSS");
-			harmony.PatchAll();
-		}
-		public void OnStartCore()
-		{
-			//
-			//
-			EffectObjectLoader.LoadEffectAsset(Path.GetDirectoryName(Info.Location));
-			Debug.Log("=====SSS:onStartCore!=====");
-		}
-	}
+        private void Awake()
+        {
+            //Harmonyé©ç”¨
+            var harmony = new Harmony("yz_SSS");
+            harmony.PatchAll();
+            //Configèª­ã¿è¾¼ã¿
+            ModConfig.LoadConfig(base.Config);
+        }
+        private void Start()
+        {
+            //ModOptionsé©ç”¨
+            ModConfigCore.ModConfigSetting();
+            //ç”Ÿæˆç‡è¨­å®š
+            ModConfigCore.ResetSpawnChance();
+        }
+        public void OnStartCore()
+        {
+            //
+            //
+            EffectObjectLoader.LoadEffectAsset(Path.GetDirectoryName(Info.Location));
+            Debug.Log("=====SSS:ã‚¢ã‚»ãƒƒãƒˆèª­ã¿è¾¼ã¿å®Œäº†ï¼=====");
+        }
+    }
 }
-/*
- *dã‚°ToDo:
- *ƒtƒbƒNOí‚ÌƒeƒLƒXƒg‰ñ‚è
- *OKFƒ}ƒbƒv‚Ìƒuƒ‰ƒbƒVƒ…ƒAƒbƒv
- *Œø‰Ê‰¹‚ğ‚¿‚á‚ñ‚Æ‚Â‚¯‚é
- *“®ìŠm”F
- *EƒlƒtƒBƒAö‚é
- *Eƒ}ƒbƒv’[‚Ìˆ—Šm”F
- *EV‹KƒZ[ƒu‚Åƒ}ƒbƒv“Ç‚İ‚İŠm”F
- *ƒfƒoƒbƒOƒƒO‚ÌƒRƒƒ“ƒgƒAƒEƒg
- *ŠeíƒƒbƒZ[ƒWŒ©’¼‚µ
- */

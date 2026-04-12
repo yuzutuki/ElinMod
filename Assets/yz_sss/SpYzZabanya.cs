@@ -24,6 +24,16 @@ namespace yz_sss
 			//Œø‰Ê‰¹(”­“®)‚ÌÄ¶
 			CC.PlaySound("reboot", 1f, true);
             CC.PlaySound("boost", 1f, true);
+            //‹Z–¼•\¦
+            if (CC.IsPC && ModConfig.SpPop.Value)
+            {
+                string msg = this.Name;
+                if (EClass.rnd(100) == 0)
+                {
+                    msg = Msg.GetGameText("yz_Zabanya");
+                }
+                CC.renderer.Say("| "+msg+" ", default(Color), 0f);
+            }
             //‚±‚Ì•Ó‚©‚çƒƒCƒ“ˆ—
             //‰Šú–Ú•W‚Ìæ“¾
             List<Point> points = YzWrapper.GetCirclePoint(CC.pos, 13, false, false);

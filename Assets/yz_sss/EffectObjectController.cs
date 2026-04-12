@@ -10,6 +10,7 @@ namespace yz_sss
     public class EffectObjectController : MonoBehaviour
     {
         //使ってない変数もいくつか
+        public ExActionData actionData;//Actデータ
         public EffData ed;//エフェクトデータ
         public Card tc;//ターゲットのカード情報
         public Card cc;//キャスターカード
@@ -34,6 +35,8 @@ namespace yz_sss
         EffType moveType;//移動タイプ
         bool lookTarget;
         Vector2 deviation;
+        Vector2 moveVelocity;//固定移動量
+        Vector2 fixVelocity;//移動量の補正
         bool moveDone;
         bool isEmitStop;//パーティクルの放出を停止
         //
@@ -93,33 +96,47 @@ namespace yz_sss
             switch (moveType)
             {
                 case (EffType.point):
-                    tPos = tp.Copy().PositionCenter();
-                    tPos.z -= 30;
+                    tPos = YzUtil.CharaCenter(tp);
                     pos = tPos;
                     //Debug.Log($"TP:[{tp}],tPos:[{tPos}]");
                     break;
                 case (EffType.follow):
-                case (EffType.hook):
                     tPos = YzUtil.CharaCenter(tc);
+                    pos = tPos;
+                    break;
+                case (EffType.hook):
+                    if (tp != tc.pos.Copy())
+                    {
+                        tPos = YzUtil.CharaCenter(tp);
+                    }
+                    else
+                    {
+                        tPos = YzUtil.CharaCenter(tc);
+                    }
                     pos = tPos;
                     break;
                 case (EffType.bolt):
                 case (EffType.accelerate):
                 case (EffType.stretch):
                     pos = cPos;
-                    tPos = tp.Copy().PositionCenter();
-                    tPos += new Vector3(0.05f, 0.35f, -50f);
+                    tPos = YzUtil.CharaCenter(tp);
                     break;
                 case (EffType.accR):
-                    pos = tp.Copy().PositionCenter();
-                    pos += new Vector3(0.05f, 0.35f, -50f);
+                    pos = YzUtil.CharaCenter(tp);
                     tPos = YzUtil.CharaCenter(cc);
                     break;
                 case (EffType.arrow):
                 case (EffType.self):
                 default:
                     pos = cPos;
-                    tPos = YzUtil.CharaCenter(tc);
+                    if (tp != null)
+                    {
+                        tPos = YzUtil.CharaCenter(tp);
+                    }
+                    else
+                    {
+                        tPos = YzUtil.CharaCenter(tc);
+                    }
                     break;
             }
             tra.position = pos;
@@ -139,7 +156,7 @@ namespace yz_sss
             if (moveType == EffType.stretch)
             {
                 float distance = Vector2.Distance(cPos, tPos);
-                if (ps!=null)
+                if (ps != null)
                 {
                     var psm = ps.main;
                     psm.startSizeXMultiplier = distance;
@@ -149,6 +166,14 @@ namespace yz_sss
                     tra.SetLocalScaleX(distance);
                 }
                 lookTarget = true;
+            }
+            //放物線計算用、固定移動量
+            if (moveType == EffType.parabola)
+            {
+                float distance = Vector2.Distance(cPos, tPos);
+                lifetime = Mathf.CeilToInt(distance / (0.8f * speed));
+                Debug.Log($"lifetime:{lifetime}");
+                moveVelocity = (tPos - cPos) / lifetime;
             }
             //向き変え処理
             if (lookTarget)
@@ -160,6 +185,12 @@ namespace yz_sss
         }
         void FixedUpdate()
         {
+            //シーン遷移で強制破棄
+            if (EClass.scene.mode != Scene.Mode.Zone)
+            {
+                Destroy(gameObject);
+                return;
+            }
             //破棄処理
             if (DestroyCheck())
             {
@@ -178,7 +209,7 @@ namespace yz_sss
                 //発動者定点処理
                 case (EffType.self):
                     break;
-                //アロー型移動処理
+                //アロー型(等速)移動処理
                 case (EffType.arrow):
                     if (((Vector2)pos - (Vector2)tPos).sqrMagnitude >= 0.01f)
                     {
@@ -192,6 +223,12 @@ namespace yz_sss
                             StopEmit();
                         }
                     }
+                    break;
+                //放物線移動処理(ライフタイム依存、固定移動量)
+                case (EffType.parabola):
+                    fixVelocity.y = -(frameCount - lifetime) * 0.015f * speed;
+                    //Debug.Log($"fixVector:{fixVelocity},frameCount:{frameCount}");
+                    pos2 += (Vector3)(moveVelocity + fixVelocity);
                     break;
                 //追従型移動処理
                 case (EffType.follow):
@@ -341,47 +378,87 @@ namespace yz_sss
             }
         }
         //
+        //破棄時の自動呼び出し
+        private void OnDestroy()
+        {
+            if (!moveDone)
+            {
+                MoveDone();
+            }
+        }
         //移動完了処理
         void MoveDone()
         {
             if (!moveDone)
             {
                 moveDone = true;
-                //
+                //スプライト透明化
                 SpriteAlphaZero();
                 //Debug.Log($"afterEffect:{ed.afterEffect}");
-                if (!string.IsNullOrEmpty(ed.afterEffect))
-                {
-                    switch (moveType)
-                    {
-                        case (EffType.accR):
-                            YzUtil.PlayEffect(ed.afterEffect, cc, cc, cc.pos);
-                            break;
-                        default:
-                            YzUtil.PlayEffect(ed.afterEffect, tc, tc, tp);
-                            break;
-                    }
-                }
+                //追加エフェクト呼び出し
+                callAfterEffect();
+                //着弾時特殊処理
+                CallExAction();
             }
         }
-        //アフターエフェクト呼び出し
-        private void OnDestroy()
+        //追加アクション呼び出し
+        private void CallExAction()
         {
-            if (!moveDone)
+            if (ed.exAction)
             {
-                moveDone = true;
-                if (!string.IsNullOrEmpty(ed.afterEffect))
+                if (actionData.SP == null)
                 {
-                    //Debug.Log($"afterEffect:{ed.afterEffect}");
-                    switch (moveType)
-                    {
-                        case (EffType.accR):
-                            YzUtil.PlayEffect(ed.afterEffect, cc, cc, cc.pos);
-                            break;
-                        default:
-                            YzUtil.PlayEffect(ed.afterEffect, tc, tc, tp);
-                            break;
-                    }
+                    Debug.Log("ExAction:missing");
+                    return;
+                }
+                if (actionData.CastZone != EClass._zone)
+                {
+                    Debug.Log("ExAction:castZone mismatch");
+                    return;
+                }
+                if (actionData.CC == null || actionData.CC.isDead)
+                { 
+                    Debug.Log("ExAction:CC missing or dead");
+                    return;
+                }
+                if (loadingZone == null || loadingZone != EClass._zone)
+                { 
+                    Debug.Log("ExAction:loadingZone mismatch");
+                    return;
+                }
+                //Debug.Log("ExAction実行");
+                string objectName = this.gameObject.name.Replace("(Clone)", "").Trim();
+                //Debug.Log($"objectNameA:{objectName}");
+                /*
+                objectName = this.gameObject.name;
+                objectName = objectName.Replace("(Clone)", "");
+                objectName = objectName.Trim();
+                Debug.Log($"objectNameB:{objectName}");
+                */
+                //Debug.Log($"ExAction type:{actionData.a.GetType()}");
+                //Debug.Log($"{actionData.a.ID},{actionData.a.Name},{actionData.a.FullName}{actionData.a.ShortName},{actionData.a.id}");
+                //インターフェイスから実行
+                if (actionData.SP is IExAction ie)
+                    ie.ExAction(actionData);
+                else
+                    Debug.Log("ExAction type mismatch");
+            }
+        }
+
+        //アフターエフェクト呼び出し
+        private void callAfterEffect()
+        {
+            if (!string.IsNullOrEmpty(ed.afterEffect))
+            {
+                //Debug.Log($"afterEffect:{ed.afterEffect}");
+                switch (moveType)
+                {
+                    case (EffType.accR):
+                        YzUtil.PlayEffect(ed.afterEffect, cc, cc, cc.pos.Copy());
+                        break;
+                    default:
+                        YzUtil.PlayEffect(ed.afterEffect, cc, TP: tp);
+                        break;
                 }
             }
         }
@@ -397,6 +474,7 @@ namespace yz_sss
             }
 
         }
+
     }
 
 }
