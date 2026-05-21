@@ -15,6 +15,7 @@ namespace yz_sss
         public Card tc;//ターゲットのカード情報
         public Card cc;//キャスターカード
         public Point tp;//ターゲット位置
+        public Point fromP;//起点上書き
         ParticleSystem ps;//パーティクル管理
         Animation anim;//アニメ管理
         SpriteRenderer sr;
@@ -49,7 +50,14 @@ namespace yz_sss
             {
                 //Debug.Log("--CC取得失敗--");
             }
-            cPos = YzUtil.CharaCenter(cc);
+            if (fromP == null)
+            {
+                cPos = YzUtil.CharaCenter(cc);
+            }
+            else
+            {
+                cPos = YzUtil.CharaCenter(fromP);
+            }
             if (tc == null)
             {
                 tc = cc;
@@ -65,6 +73,10 @@ namespace yz_sss
             color = ed.colorFix;
             color.a *= ed.alphaFix;
             speed = ed.speedFix;
+            if (ed.lifeTime > 0)
+            {
+                lifetime = ed.lifeTime;
+            }
             //コンポーネント取得
             tra = this.GetComponent<Transform>();
             ps = this.GetComponent<ParticleSystem>();
@@ -151,6 +163,11 @@ namespace yz_sss
                 deviation.x = Random.Range(-0.15f, 0.15f);
                 deviation.y = Random.Range(-0.15f, 0.15f);
                 tPos += (Vector3)deviation;
+                if(moveType == EffType.point)
+                {
+                    pos += (Vector3)deviation;
+                    tra.position = pos;
+                }
             }
             //引き伸ばし処理
             if (moveType == EffType.stretch)
@@ -172,8 +189,18 @@ namespace yz_sss
             {
                 float distance = Vector2.Distance(cPos, tPos);
                 lifetime = Mathf.CeilToInt(distance / (0.8f * speed));
-                Debug.Log($"lifetime:{lifetime}");
+                //Debug.Log($"lifetime:{lifetime}");
                 moveVelocity = (tPos - cPos) / lifetime;
+            }
+            //固定移動量(flat用)
+            if (moveType == EffType.flat)
+            {
+                if (lifetime <= 0)
+                {
+                    lifetime = 60;
+                }
+                //lifetime = (int)speed;
+                //moveVelocity = (tPos - cPos) / lifetime;
             }
             //向き変え処理
             if (lookTarget)
@@ -230,6 +257,19 @@ namespace yz_sss
                     //Debug.Log($"fixVector:{fixVelocity},frameCount:{frameCount}");
                     pos2 += (Vector3)(moveVelocity + fixVelocity);
                     break;
+                //フラット移動処理(時間固定移動)
+                case (EffType.flat):
+                    if (tc != null && tc != cc)
+                    {
+                        if(!tc.Chara.isDead && !tc.isDestroyed)
+                        {
+                            tp= tc.pos.Copy();
+                            tPos = YzUtil.CharaCenter(tp);
+                        }
+                    }
+                    //pos2 += (Vector3)(moveVelocity);
+                    pos2 = Vector2.Lerp(cPosF, tPos, Mathf.Clamp01(frameCount / (float)ed.lifeTime));
+                    break;
                 //追従型移動処理
                 case (EffType.follow):
                     if (tc != null && tc.renderer != null)
@@ -239,7 +279,7 @@ namespace yz_sss
                     }
                     else
                     {
-                        Debug.Log($"{this.gameObject.name}:MissingTarget,stopEmitter");
+                        //Debug.Log($"{this.gameObject.name}:MissingTarget,stopEmitter");
                         StopEmit();
                     }
                     break;
@@ -333,6 +373,7 @@ namespace yz_sss
             //生存時間処理
             if (lifetime > 0)
             {
+                //Debug.Log($"lifeTime:{lifetime}");
                 lifetime--;
                 if (lifetime == 0)
                 {
@@ -417,12 +458,12 @@ namespace yz_sss
                     return;
                 }
                 if (actionData.CC == null || actionData.CC.isDead)
-                { 
+                {
                     Debug.Log("ExAction:CC missing or dead");
                     return;
                 }
                 if (loadingZone == null || loadingZone != EClass._zone)
-                { 
+                {
                     Debug.Log("ExAction:loadingZone mismatch");
                     return;
                 }

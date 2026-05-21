@@ -16,6 +16,7 @@ namespace yz_sss
             {
                 return false;
             }
+            //Debug.Log("1");
             if (YzUtil.CheckFailSelf(this, CC, TC, TP))
             {
                 return false;
@@ -27,6 +28,8 @@ namespace yz_sss
             //この辺からメイン処理
             //ダメージ出力やエフェクトは適宜入れ替える
             //
+            //Debug.Log("2");
+            //Debug.Log($"CC:{CC?.Name},TC:{TC?.Name},TP:{TP}");
             int aPen = 0;
             float mult = 1f;
             string playEff = "Goblin1";
@@ -34,6 +37,7 @@ namespace yz_sss
             //緩和条件
             if (TC != CC || (TC==CC && TP.Equals(CC.pos))  )
             {
+                //Debug.Log("3");
                 if (ModConfig.GpLimit.Value)
                 {
                     if (TC.Chara.LV > CC.LV / 2 && TC.Chara.LV < CC.LV * 2)
@@ -55,8 +59,10 @@ namespace yz_sss
                         playSe = "whip";
                     }
                 }
+                //Debug.Log("4");
                 YzWrapper.AddDamage(this, CC, TC.Chara, pow, Element.Void, AS: AttackSource.Melee, penetration: aPen, damageMult: mult);
             }
+            //Debug.Log("5");
             //エフェクト再生
             YzUtil.PlayEffect(playEff, CC, TP: TP.Copy());
             //

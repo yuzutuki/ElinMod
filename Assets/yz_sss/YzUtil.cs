@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Forms;
 using UnityEngine;
 using static Season;
 using static UnityEditor.PlayerSettings;
@@ -30,13 +31,14 @@ namespace yz_sss
         accelerate,
         accR,
         homing,
-        parabola
+        parabola,
+        flat
     }
     static public class YzUtil
     {
 
         //エフェクトの再生
-        public static void PlayEffect(string key, Card CC, Card TC = null, Point TP = null, string replaceAffterEffect = null, ExActionData actionData = default)
+        public static void PlayEffect(string key, Card CC, Card TC = null, Point fromP = null, Point TP = null, string replaceAffterEffect = null, ExActionData actionData = default)
         {
             // エフェクトのPrefab取得
             if (!YzSSS.objDic.TryGetValue(key, out GameObject prefab))
@@ -76,10 +78,24 @@ namespace yz_sss
                     if (TP != null)
                         setPos = CharaCenter(TP);
                     else
-                        setPos = CharaCenter(TC);
+                        if (TC != null)
+                        {
+                            setPos = CharaCenter(TC);
+                        }
+                        else
+                        {
+                            setPos = CharaCenter(CC);
+                        }
                     break;
                 default:
-                    setPos = CharaCenter(CC);
+                    if (fromP == null)
+                    {
+                        setPos = CharaCenter(CC);
+                    }
+                    else
+                    {
+                        setPos = CharaCenter(fromP);
+                    }
                     break;
             }
             //Debug.Log($"checkVec: c:{CharaCenter(CC)},t:{TP?.PositionCenter()}");
@@ -91,6 +107,7 @@ namespace yz_sss
                 oc.cc = CC;
                 oc.tc = TC;
                 oc.tp = TP?.Copy();
+                oc.fromP = fromP?.Copy();
                 oc.ed = data.Clone();
                 oc.actionData = actionData;
             }
@@ -114,7 +131,7 @@ namespace yz_sss
             //Debug.Log($"charaSource:{c?.Chara?.source?.idRenderData}");
             if (c == null)
             {
-                Debug.Log("--MissingCard?--");
+                Debug.Log("--CharaCenter:MissingCard?--");
                 return (v3);
             }
             if (c.renderer.PositionCenter() == null ||
@@ -145,8 +162,12 @@ namespace yz_sss
         }
         static public Vector3 CharaCenter(Point p)
         {
-            Vector3 v3 = p.Copy().PositionCenter();
-            v3 += new Vector3(0.05f, 0.35f, -150f);
+            Vector3 v3 = new Vector3();
+            if (p != null)
+            {
+                v3 = p.Copy().PositionCenter();
+                v3 += new Vector3(0.05f, 0.35f, -150f);
+            }
             return v3;
 
         }
@@ -245,14 +266,15 @@ namespace yz_sss
         //自己対象不可処理、trueなら詠唱失敗
         static public bool CheckFailSelf(Spell SP, Card CC, Card TC, Point TP)
         {
-            if (!ModConfig.SelfCastLock.Value)
+            if (ModConfig.SelfCastLock == null || !ModConfig.SelfCastLock.Value)
             {
                 return false;
             }
             string tg = SP.source.target;
             bool fail = false;
             //Debug.Log($"tg:{tg}, CC.pos:{CC.pos}, TP:{TP},CC.uid:{CC.uid}, TC.uid:{TC?.uid}");
-            switch (tg) {
+            switch (tg)
+            {
                 case "Ground":
                 case "Neighbor":
                     if (TP.Equals(CC.pos))
@@ -286,7 +308,8 @@ namespace yz_sss
             Same,
             Average,
             Power,
-            Static
+            Flat,
+            Unique
         }
         static public Chara SummonMinion(string summonID, Chara caster, Point _tp, int radius = 1, LevelAdjust adjust = LevelAdjust.Same, int power = 100, bool uniqueSummon = false, int lifeTime = -1)
         {
@@ -300,14 +323,14 @@ namespace yz_sss
                 caster.Say("summon_ally_fail", caster, null, null);
                 return null;
             }
-            //重複チェック
+            //ユニーク重複チェック
             if (uniqueSummon)
             {
                 foreach (Chara chara in EClass._map.charas)
                 {
                     if (chara.IsPCFactionMinion && !chara.IsEscorted())
                     {
-                        if (chara.id == summonID)
+                        if (chara.sourceCard.tag.Contains("UNsummon"))
                         {
                             caster.Say("yz_UniqueSummonFail");
                             return null;
@@ -338,7 +361,7 @@ namespace yz_sss
                 case (LevelAdjust.Same):
                     minionLv = caster.LV;
                     break;
-                case (LevelAdjust.Static):
+                case (LevelAdjust.Flat):
                     minionLv = minion.LV;
                     break;
                 case (LevelAdjust.Power):
@@ -349,6 +372,11 @@ namespace yz_sss
                     minionLv = ((power / 10) + caster.LV) / 2;
                     minionLv.Clamp(1, caster.LV * 4);
                     break;
+                case LevelAdjust.Unique:
+                    minionLv = (caster.LV + EClass.player.stats.deepest + (power / 10)) / 3;
+                    //minionLv.Clamp(1, caster.LV * 4);
+                    break;
+
             }
             //
             minion.interest = 0;
@@ -369,6 +397,11 @@ namespace yz_sss
                     //Debug.Log("SummonSIR");
                     YzUtil.PlayEffect("Summon4", minion, minion, point);
                     caster.Say("yz_summon_SIR");
+                    break;
+                case "yz_Osty":
+                    //Debug.Log("SummonOsty");
+                    YzUtil.PlayEffect("Summon1", minion, minion, point);
+                    c.Chara.AddCondition<StYzByside>();
                     break;
                 default:
                     //Debug.Log("SummonDefault");
@@ -648,9 +681,9 @@ namespace yz_sss
             DelayAction(() => origin.PlaySound(id, v, spatial), delay);
         }
         //エフェクト遅延再生
-        static public void DelayPlayEffect(int delay, string id, Card CC, Card TC, Point TP = null, string AffterEffect = null)
+        static public void DelayPlayEffect(int delay, string id, Card CC, Card TC=null, Point TP = null, string AffterEffect = null)
         {
-            DelayAction(() => YzUtil.PlayEffect(id, CC, TC, TP.Copy(), AffterEffect), delay);
+            DelayAction(() => YzUtil.PlayEffect(id, CC, TC, TP.Copy(), replaceAffterEffect: AffterEffect), delay);
         }
         //バニラのエフェクト遅延再生(デフォのDelayと別)
         static public void DelayVanilaEffect(int delay, Element EL, Point TP)

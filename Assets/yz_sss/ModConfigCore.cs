@@ -14,6 +14,7 @@ namespace yz_sss
     {
         static public void ModConfigSetting()
         {
+            Debug.Log(" -= SSS Config 読み込み… =-");
             foreach (var obj in ModManager.ListPluginObject)
             {
                 var plugin = obj as BaseUnityPlugin;
@@ -33,6 +34,8 @@ namespace yz_sss
                     controller.SetTranslation("c3tip", "When disabled, the requirements become closer to the original behavior and its power increases.", "ゴブリンパンチの強化条件を緩和します。無効にすると元ネタに近い条件になり、威力が強化されます。", "放宽哥布林拳的强化条件。禁用时将更接近原始机制，威力会提升。");
                     controller.SetTranslation("c4", "Self-Target Prevention", "自傷防止", "Self-Target Prevention");
                     controller.SetTranslation("c4tip", "Causes certain offensive spells to automatically fail when the caster targets themselves", "一部の攻撃魔法で詠唱者自身を対象にしたときに、自動失敗するようになります。", "当施法者将自己作为目标时，某些攻击性法术会自动失败。");
+                    controller.SetTranslation("c5", "Add SeeInvisible to Automapping", "オートマッピングに透明可視追加", "为自动测绘添加看穿透明");
+                    controller.SetTranslation("c5tip", "When Automapping activates, it will additionally consume stock and MP and also apply the SeeInvisible effect", "オートマッピングの効果発動時に、ストックとMPを追加で消費し、透明可視の効果も発動するようになります。", "当自动测绘效果触发时，将额外消耗充能和MP，并同时获得看穿透明效果");
                     //UI構築
                     controller.OnBuildUI += delegate (OptionUIBuilder build)
                     {
@@ -59,6 +62,11 @@ namespace yz_sss
                         {
                             ModConfig.SelfCastLock.Value = v;
                         };
+                        //
+                        build.Root.AddToggle(controller.Tr("c5"), ModConfig.AutoMapPlus.Value, 16, controller.Tr("c5tip")).OnValueChanged += delegate (bool v)
+                        {
+                            ModConfig.AutoMapPlus.Value = v;
+                        };
                     };
                     Debug.Log("-= SSS:ModOptions適用完了? =-");
                 }
@@ -69,6 +77,21 @@ namespace yz_sss
         //生成率のリセット
         static public void ResetSpawnChance()
         {
+            foreach(int id in YzSSS.SpellIDList)
+            {
+                EClass.sources.elements.map.TryGetValue(id, out SourceElement.Row row);
+                if (!ModConfig.SpawnRestrict.Value)
+                {
+                    row.chance = 800;
+                    Debug.Log($"SetChance:{id},{row.alias},{row.chance}");
+                }
+                else
+                {
+                    row.chance = 0;
+                    Debug.Log($"ResetChance:{id},{row.alias},{row.chance}");
+                }
+            }
+            /*
             //基準値(720012:アナライズ以降)
             int originID = 720012;
             //とりあえず+100まで
@@ -102,6 +125,7 @@ namespace yz_sss
                     //Debug.LogError($"MissingElement:{id}");
                 }
             }
+            */
 
         }
         //

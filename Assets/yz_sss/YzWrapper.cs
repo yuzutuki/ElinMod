@@ -43,16 +43,21 @@ namespace yz_sss
         }
         static public int GetLevel(Chara CC, int id)
         {
-            int level = CC.elements.Value(id);
+            int level = CC.elements?.Value(id) ?? 0;
             //Debug.Log($"{id} Level:{level}");
             return level;
         }
         //ëÆê´íléÊìæ
         static public Element GetElement(Act act, int pow)
         {
-            Element ele = Element.Create(act.source.aliasRef, pow / 10);
-            //Debug.Log($"Element:{ele.id},{ele.Name}");
-            return ele;
+            if (act.source.aliasRef ==""|| act.source.aliasRef == null)
+            {
+                return Element.Create(926, pow / 10);
+            }
+            else
+            {
+                return Element.Create(act.source.aliasRef, pow / 10);
+            }
         }
         static public Element GetElement(string eleAlias, int pow)
         {

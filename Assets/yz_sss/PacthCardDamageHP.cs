@@ -7,10 +7,9 @@ using HarmonyLib;
 
 namespace yz_sss
 {
-    //遠隔攻撃実行時、処理後。
-    //サバーニャエフェクト用
+    //鹿起爆処理
     [HarmonyPatch(typeof(Card), nameof(Card.DamageHP))]
-    [HarmonyPatch(new Type[] { typeof(long), typeof(int), typeof(int), typeof(AttackSource), typeof(Card), typeof(bool), typeof(Thing), typeof(Chara) })]
+    [HarmonyPatch(new Type[] { typeof(long), typeof(int), typeof(int), typeof(AttackSource), typeof(Card), typeof(bool), typeof(Thing), typeof(Chara),typeof(int) })]
     internal class PatchCardDamageHP
     {
         [HarmonyPostfix]

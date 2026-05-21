@@ -22,6 +22,7 @@ namespace yz_sss
         public bool deviation;
         public bool exAction;
         public string afterEffect;
+        public int lifeTime;
         //空コンストラクタ
         public EffData() { }
         //コピーコンストラクタ
@@ -38,6 +39,7 @@ namespace yz_sss
             deviation = o.deviation;
             exAction = o.exAction;
             afterEffect = o.afterEffect;
+            lifeTime = o.lifeTime;
         }
         //クローン
         public EffData Clone()
@@ -60,7 +62,7 @@ namespace yz_sss
             $"  afterEffect: {afterEffect}"
           );
         }
-    }
+    } 
     public class EffectObjectLoader : MonoBehaviour
     {
 
@@ -154,6 +156,8 @@ namespace yz_sss
                     data.alphaFix = float.TryParse(GetCellString(row, 4), out float a) ? a : 1f;
                     //速度補正
                     data.speedFix = float.TryParse(GetCellString(row, 5), out float s) ? s : 1f;
+                    //生存時間
+                    data.lifeTime = int.TryParse(GetCellString(row, 7), out int l) ? l : -1;
                     //タグ処理
                     data.lookTarget = GetCellString(row, 2).Contains("LookTarget");
                     data.arrowHold = GetCellString(row, 2).Contains("ArrowHold");

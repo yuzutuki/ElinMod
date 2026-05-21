@@ -23,7 +23,7 @@ namespace yz_sss
 			//Œø‰Ê‰¹(”­“®)‚ÌÄ¶
 			CC.PlaySound("identify", 1f, true);
 			//‚±‚Ì•Ó‚©‚çƒƒCƒ“ˆ—
-			YzUtil.SummonMinion("yz_SwordFamiliar", CC, TP.Copy(), 1, YzUtil.LevelAdjust.Average, pow, true);
+			YzUtil.SummonMinion("yz_SwordFamiliar", CC, TP.Copy(), 1, YzUtil.LevelAdjust.Unique, pow, true);
 			//
 			//YzWrapper.PlayVanillaEffect(ele, TC.pos,1f);
 			//

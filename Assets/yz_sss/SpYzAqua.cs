@@ -16,7 +16,7 @@ namespace yz_sss
             {
                 return false;
             }
-            if (YzUtil.CheckFailSelf(this,CC,TC,TP))
+            if (YzUtil.CheckFailSelf(this, CC, TC, TP))
             {
                 return false;
             }
@@ -27,35 +27,38 @@ namespace yz_sss
             //効果音(発動時)の再生
             //CC.PlaySound("identify", 1f, true);
             CC.PlaySound("bubble", 1f, true);
-            for(int i=0; i < 6; i++)
+            for (int i = 0; i < 6; i++)
             {
-                YzUtil.DelayAction(() => {
+                YzUtil.DelayAction(() =>
+                {
                     CC.PlaySound("bubble", 0.7f, true);
-                }, i*7);
+                }, i * 7);
             }
             //この辺からメイン処理
             //ダメージ出力やエフェクトは適宜入れ替える
-            List<Point> points = YzWrapper.GetArcPoint(CC.pos, TP, 7, 35);
-            points = YzUtil.DistanceSort(CC.pos, points);
+            List<Point> points = YzWrapper.GetArcPoint(CC.pos.Copy(), TP.Copy(), 7, 35);
+            points = YzUtil.DistanceSort(CC.pos.Copy(), points);
             int count = 0;
             foreach (Point p in points)
             {
-                count++;
+                List<Chara> charas = p.ListCharas();
+                foreach (Chara c in charas)
+                {
+                    c.AddCondition<ConWet>(100, false);
+                    if (!YzUtil.AvoidFriendlyFire(CC, c))
+                    {
+                        YzWrapper.AddDamage(this, CC, c, pow, ele);
+                    }
+                }
                 //YzWrapper.PlayVanillaEffect(ele, p,count*2);
-                YzUtil.DelayAction(() => {
+                YzUtil.DelayAction(() =>
+                {
                     YzUtil.ShowEffectiveArea(p.Copy());
                     YzUtil.PlayEffect("Aqua", CC, TP: p.Copy());
                     //YzWrapper.AddDamage(p.Copy(), this, CC, pow, ele);
-                    List<Chara> charas = p.ListCharas();
-                    foreach (Chara c in charas)
-                    {
-                        c.AddCondition<ConWet>(100, false);
-                        if (!YzUtil.AvoidFriendlyFire(CC, c))
-                        {
-                            YzWrapper.AddDamage(this, CC, c, pow, ele);
-                        }
-                    }
-                }, count);
+                }, count/2);
+                count++;
+
             }
             //
             return true;

@@ -18,7 +18,6 @@ namespace yz_sss
             //オートマッピング
             if (EClass.pc.HasCondition<StYzAutomap>())
             {
-                //EClass._zone.FeatureType != ZoneFeatureType.RandomField ||
                 Zone z = EClass._zone;
                 if (z.IsRegion || z.IsPCFactionOrTent || z.IsTown)
                     return;
@@ -31,7 +30,9 @@ namespace yz_sss
                     Element mm = c.elements.GetOrCreateElement(8260);
                     //8770:テレパシー
                     Element tl = c.elements.GetOrCreateElement(8770);
-                    if (mm.Potential - 100 < 1 || tl.Potential - 100 < 1)
+                    //8776:透明可視化
+                    Element si = c.elements.GetOrCreateElement(8776);
+                    if (mm.Potential - 100 < 1 || tl.Potential - 100 < 1||(ModConfig.AutoMapPlus.Value && si.Potential-100<1))
                     {
                         Msg.Say("noSpellStock");
                         c.RemoveCondition<StYzAutomap>();
@@ -40,6 +41,11 @@ namespace yz_sss
                     mm.vPotential -= 1;
                     tl.vPotential -= 1;
                     int cost = mm.GetCost(c).cost + tl.GetCost(c).cost;
+                    if (ModConfig.AutoMapPlus.Value)
+                    {
+                        si.vPotential -= 1;
+                        cost += si.GetCost(c).cost;
+                    }
                     c.mana.Mod(-cost);
                     Debug.Log($"vExp:{mm.vExp},next:{mm.ExpToNext}");
                     //					Debug.Log($"cost:{mm.GetCost(c).cost},lv:{mm.Value},Potential:{mm.Potential},stack:{mm.Potential - 100}");
@@ -52,6 +58,13 @@ namespace yz_sss
                     c.ModExp(tl.id, c.elements.GetSpellExp(c, tl, 80));
                     EClass._map.Reveal(c.pos, pow);
                     c.AddCondition<ConTelepathy>(pow2);
+                    if (ModConfig.AutoMapPlus.Value)
+                    {
+                        int pow3 = YzWrapper.GetPower(c, 8776);
+                        c.ModExp(si.id, c.elements.GetSpellExp(c, si, 80));
+                        c.AddCondition<ConSeeInvisible>(pow3);
+                    }
+
                 }
             }
         }
