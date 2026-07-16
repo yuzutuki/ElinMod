@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Cwl.Helper.Unity;
 using EvilMask.Elin.ModOptions;
 using EvilMask.Elin.ModOptions.UI;
 using UnityEngine.UI;

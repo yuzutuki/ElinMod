@@ -65,7 +65,7 @@ namespace yz_sss
                 }
             }
             //
-            YzUtil.PlayEffect("Summon1", minion, minion, point);
+            YzUtil.PlayEffect("Summon1", minion, minion, TP: point);
             return true;
         }
     }

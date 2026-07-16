@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Cwl.Helper.Unity;
 using EvilMask.Elin.ModOptions;
 using EvilMask.Elin.ModOptions.UI;
 using UnityEngine.UI;
@@ -34,13 +33,14 @@ namespace yz_ReSS
         {
             //ModOptions適用
             Debug.Log("=====ReSS:Config読み込み(Start)=====");
-            ModConfigCore.ModConfigSetting();
+            ModConfigCore.ModConfigSetting(Path.GetDirectoryName(Info.Location));
         }
         public void OnStartCore()
         {
             //
+            Debug.Log("=====ReSS:アセット読み込み開始=====");
             EffectObjectLoader.LoadEffectAsset(Path.GetDirectoryName(Info.Location));
-            Debug.Log("=====ReSS:アセット読み込み完了！=====");
+            Debug.Log("=====ReSS:アセット読み込み完了=====");
         }
     }
 }

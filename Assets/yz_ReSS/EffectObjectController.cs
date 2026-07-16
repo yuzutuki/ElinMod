@@ -38,6 +38,7 @@ namespace yz_ReSS
         Vector2 fixVelocity;//移動量の補正
         bool moveDone;
         bool isEmitStop;//パーティクルの放出を停止
+        bool calledAfterEffect;//アフターエフェクト呼び出し済みか
         //
         //
         void Start()
@@ -70,6 +71,7 @@ namespace yz_ReSS
             lookTarget = ed.lookTarget;
             color = ed.colorFix;
             color.a *= ed.alphaFix;
+            color.a *= ModConfig.EffectAlpha.Value;
             speed = ed.speedFix;
             if (ed.lifeTime > 0)
             {
@@ -84,13 +86,13 @@ namespace yz_ReSS
             if (ps != null)
             {
                 var psm = ps.main;
-                color = psm.startColor.color * color;
-                psm.startColor = color;
+                //color = psm.startColor.color * color;
+                //psm.startColor = color;
                 //Debug.Log("--isParticleSystem--");
             }
             if (sr != null)
             {
-                sr.color = color;
+                //sr.color = color;
                 //Debug.Log("--isSpriteRender--");
             }
             if (anim != null)
@@ -161,7 +163,7 @@ namespace yz_ReSS
                 deviation.x = Random.Range(-0.15f, 0.15f);
                 deviation.y = Random.Range(-0.15f, 0.15f);
                 tPos += (Vector3)deviation;
-                if(moveType == EffType.point)
+                if (moveType == EffType.point)
                 {
                     pos += (Vector3)deviation;
                     tra.position = pos;
@@ -205,7 +207,25 @@ namespace yz_ReSS
             {
                 tra.rotation = YzUtil.LookTarget(cPos, tPos);
             }
-            //ed.CheckEffectData();
+            /*
+            //子コンポーネントへの色の適用(ReSS)
+            foreach (Transform child in this.transform)
+            {
+                if (!child.name.Contains("noColor"))
+                {
+                    if (child.TryGetComponent<SpriteRenderer>(out var sr))
+                    {
+                        sr.color = ColorSetting.EleColorFix(color);
+                    }
+                    if (child.TryGetComponent<ParticleSystem>(out var ps))
+                    {
+                        var psm = ps.main;
+                        psm.startColor = ColorSetting.EleColorFix(color);
+                    }
+                }
+            }
+            */
+                //ed.CheckEffectData();
 
         }
         void FixedUpdate()
@@ -247,6 +267,13 @@ namespace yz_ReSS
                             MoveDone();
                             StopEmit();
                         }
+                        else
+                        {
+                            if(ed.afterEffect != null)
+                            {
+                                callAfterEffect();
+                            }
+                        }
                     }
                     break;
                 //放物線移動処理(ライフタイム依存、固定移動量)
@@ -259,9 +286,9 @@ namespace yz_ReSS
                 case (EffType.flat):
                     if (tc != null && tc != cc)
                     {
-                        if(!tc.Chara.isDead && !tc.isDestroyed)
+                        if (!tc.Chara.isDead && !tc.isDestroyed)
                         {
-                            tp= tc.pos.Copy();
+                            tp = tc.pos.Copy();
                             tPos = YzUtil.CharaCenter(tp);
                         }
                     }
@@ -442,6 +469,8 @@ namespace yz_ReSS
         //アフターエフェクト呼び出し
         private void callAfterEffect()
         {
+            if (calledAfterEffect)
+                return;
             if (!string.IsNullOrEmpty(ed.afterEffect))
             {
                 //Debug.Log($"afterEffect:{ed.afterEffect}");
@@ -451,10 +480,11 @@ namespace yz_ReSS
                         YzUtil.PlayEffect(ed.afterEffect, cc, cc, cc.pos.Copy());
                         break;
                     default:
-                        YzUtil.PlayEffect(ed.afterEffect, cc, TP: tp);
+                        YzUtil.PlayEffect(ed.afterEffect, cc, TP: tp.Copy());
                         break;
                 }
             }
+            calledAfterEffect = true;
         }
         //子も含めたスプライトの透明化
         void SpriteAlphaZero()

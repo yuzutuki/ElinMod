@@ -32,7 +32,7 @@ namespace yz_sss
             CC.Say("yz_UseFirewall",CC);
             List<Point> tps = YzUtil.DistanceSort(CC.pos,ep);
             YzUtil.ShowEffectiveArea(tps);
-            YzUtil.PlayEffect("Firewall", CC, TC,TP);
+            YzUtil.PlayEffect("Firewall", CC, TC,TP: TP);
             ActEffect.TryDelay(delegate{
                 CC.PlaySound("identify", 1f, true);
             });

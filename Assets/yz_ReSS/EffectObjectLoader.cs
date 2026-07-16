@@ -71,22 +71,24 @@ namespace yz_ReSS
         static public void LoadEffectAsset(string assetPath)
         {
             //エクセルファイル読み込み
-            YzReSS.effDic = LoadExcel(Path.Combine(assetPath, "Asset", "sss_Data.xlsx"));
+            YzReSS.effDic = LoadExcel(Path.Combine(assetPath, "Asset", "ress_Data.xlsx"));
             //読み込みテスト
-            if (YzReSS.effDic.TryGetValue("CheckTest", out EffData loadtest))
+            /*
+            if (YzReSS.effDic.TryGetValue("castBlack", out EffData loadtest))
             {
-                //Debug.Log($"読み込みテスト:{loadtest.id},{loadtest.type},{loadtest.tag},{loadtest.colorFix}");
+                Debug.Log($"読み込みテスト:{loadtest.id},{loadtest.type},{loadtest.tag},{loadtest.colorFix}");
             }
+            */
             //アセットバンドル読み込み
             AssetBundle ab;
-            string path = Path.Combine(assetPath, "Asset", "sss_Particle");
+            string path = Path.Combine(assetPath, "Asset", "ress_particle");
             Debug.Log($"path:{path}");
             //Debug.Log("LoadEffectAsset...");
             ab = AssetBundle.LoadFromFile(path);
 
             if (ab == null)
             {
-                Debug.Log($"-==-エラーデス!！ アセットの読み込みに失敗,Path{path}-==-");
+                Debug.Log($"-==-ReSS:アセットの読み込みに失敗,Path{path}-==-");
                 return;
             }
             Debug.Log(ab.name);
@@ -113,12 +115,11 @@ namespace yz_ReSS
             //エラー処理
             if (!File.Exists(path))
             {
-                Debug.Log($"-=-=エラーデス！Excelファイルを取得できませんでした。({path})=-=-");
+                Debug.Log($"-=-=ReSS:Excelファイルを取得できませんでした。({path})=-=-");
                 return dic;
             }
             Debug.Log("xlsx読み込みOK");
             //NPOIのなんやかんやでファイル読み込み
-            //using内でやると処理が終わったときにファイルを閉じてメモリにやさしい　らしい。
             using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 IWorkbook workbook = new XSSFWorkbook(stream);
@@ -130,6 +131,11 @@ namespace yz_ReSS
                     EffData data = new EffData();
                     //ID
                     data.id = GetCellString(row, 0);
+                    if(data.id == null || data.id == "" || data.id == " ")
+                    {
+                        //Debug.Log($"ReSS:スキップ列:{i}");
+                        continue;
+                    }
                     //移動タイプ
                     data.type = YzUtil.ToType(GetCellString(row, 1));
                     //色補正

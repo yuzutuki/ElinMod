@@ -40,7 +40,7 @@ namespace yz_sss
 			int delay = 30/castCount;
             for (int i = 0; i < castCount; i++)
 			{
-				YzUtil.DelayPlayEffect(i*delay,"Tempest1",CC,CC,CC.pos.Copy());
+				YzUtil.DelayPlayEffect(i*delay,"Tempest1",CC,CC,TP:CC.pos.Copy());
 			}
 			//
 			//

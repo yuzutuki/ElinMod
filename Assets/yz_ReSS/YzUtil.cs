@@ -1,5 +1,4 @@
-using Cwl.Helper;
-using Cwl.Helper.Unity;
+using Mono.WebBrowser;
 using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections;
@@ -36,8 +35,32 @@ namespace yz_ReSS
     {
 
         //エフェクトの再生
-        public static void PlayEffect(string key, Card CC, Card TC = null, Point fromP = null, Point TP = null, string replaceAffterEffect = null)
+        public static void PlayEffect(string key, Card CC, Card TC = null, Point fromP = null, Point TP = null, string replaceAffterEffect = null, Color color = new Color())
         {
+            //視界範囲外キャンセル
+            if (!ModConfig.ShowOutFovEffect.Value)
+            {
+                Point seePoint = new Point();
+                if (TP != null)
+                {
+                    seePoint = TP.Copy();
+                }
+                else if (TC != null)
+                {
+                    seePoint = TC.pos.Copy();
+                }
+                else
+                {
+                    seePoint = CC.pos.Copy();
+                }
+                //Debug.Log($"seePoint:{seePoint},CanSee:{EClass.pc.Chara.CanSeeSimple(seePoint)},CanSeeCC:{EClass.pc.Chara.CanSeeSimple(CC.pos.Copy())}");
+                //Debug.Log($"CCisSynced:{CC.isSynced},seePointSynced:{seePoint.IsSync}");
+                //if (!EClass.pc.Chara.CanSeeSimple(seePoint) && !EClass.pc.Chara.CanSeeSimple(CC.pos.Copy()))
+                if (!CC.isSynced && !seePoint.IsSync)
+                {
+                    return;
+                }
+            }
             // エフェクトのPrefab取得
             if (!YzReSS.objDic.TryGetValue(key, out GameObject prefab))
             {
@@ -51,14 +74,17 @@ namespace yz_ReSS
                 Debug.Log("エフェクトデータの取得に失敗");
                 return;
             }
-            /*
-            if (TC == null || TC.isDestroyed)
+            
+            if (TC != null && (TC.isDestroyed))
             {
-                Debug.Log($"ターゲットnull or destroy:{key}");
-                return;
+                //Debug.Log($"ターゲットdestroyed?:{key}, TC: {TC?.Name}");
+                if (TP == null)
+                {
+                    TP = TC?.pos?.Copy();
+                   //Debug.Log($"destroyedTC forcedSetTP: {TP}");
+                }
             }
-            */
-
+            
             // 基準位置を計算
             Vector3 setPos = new Vector3();
             switch (data.type)
@@ -97,6 +123,11 @@ namespace yz_ReSS
                     break;
             }
             //Debug.Log($"checkVec: c:{CharaCenter(CC)},t:{TP?.PositionCenter()}");
+            //色設定
+            if (color == default)
+            {
+                color = Color.white;
+            }
             // インスタンス生成
             GameObject obj = UnityEngine.Object.Instantiate(prefab, setPos, Quaternion.Euler(0, 0, 0));
             // エフェクト制御コンポーネントの設定
@@ -107,15 +138,57 @@ namespace yz_ReSS
                 oc.tp = TP?.Copy();
                 oc.fromP = fromP?.Copy();
                 oc.ed = data.Clone();
+                oc.ed.colorFix = Color.Lerp(oc.ed.colorFix, color, 1f);
+                //追加エフェクト
+                if (replaceAffterEffect != null)
+                {
+                    oc.ed.afterEffect = replaceAffterEffect;
+                }
+                //属性色補正
             }
             else
             {
                 Debug.Log($"制御スクリプト取得失敗？: {obj.name}");
             }
-            //追加エフェクト
-            if (replaceAffterEffect != null)
+            //色の適用(ReSS)
+            //if (!(color == default || color == Color.white))
+            //{
+                if (obj.TryGetComponent<SpriteRenderer>(out var srMain))
+                {
+                    srMain.color = ColorSetting.EleColorFix(color, srMain.color);
+                }
+                if (obj.TryGetComponent<ParticleSystem>(out var psMain))
+                {
+                    var psm = psMain.main;
+                    psm.startColor = ColorSetting.EleColorFix(color, psm.startColor.color);
+                }
+            //}
+            foreach (Transform child in obj.transform)
             {
-                oc.ed.afterEffect = replaceAffterEffect;
+                bool isEx = false;
+                if (child.name.Contains("ExPt"))
+                {
+                    isEx = true;
+                }
+                if (isEx == true && (ModConfig.MoreEffect.Value == 3 || (ModConfig.MoreEffect.Value == 2 && !CC.IsPC) || (ModConfig.MoreEffect.Value == 1 && !CC.IsPCFactionOrMinion)))
+                {
+                    child.gameObject.SetActive(false);
+                    continue;
+                }
+                //if (!(child.name.Contains("noColor") ||color == default || color == Color.white))
+                if (!child.name.Contains("noColor"))
+                {
+                    if (child.TryGetComponent<SpriteRenderer>(out var sr))
+                    {
+                        sr.color = ColorSetting.EleColorFix(color, sr.color, isEx: isEx);
+                    }
+                    if (child.TryGetComponent<ParticleSystem>(out var ps))
+                    {
+                        var psm = ps.main;
+                        psm.startColor = ColorSetting.EleColorFix(color, psm.startColor.color, isEx: isEx);
+                    }
+                }
+
             }
             //Debug.Log($"PlayEffect: {obj.name}");
         }
@@ -136,13 +209,13 @@ namespace yz_ReSS
                 !c.isChara ||
                 !c.isSynced)
             {
-                v3 = c.pos.PositionCenter() + new Vector3(0.05f, 0.35f, 0);
+                v3 = c.pos.PositionCenter() + new Vector3(0.05f, 0.2f, 0);
             }
             else if (c.Chara.source.idRenderData == "@chara" ||
                      c.Chara.source.idRenderData == "@chara_L" ||
                      c.Chara.source.idRenderData == "@chara_LL")
             {
-                v3 = c.pos.PositionCenter() + new Vector3(0.05f, 0.35f, 0);
+                v3 = c.pos.PositionCenter() + new Vector3(0.05f, 0.2f, 0);
             }
             else if (c.Chara.source.idRenderData == "chara_L" ||
                      c.Chara.source.idRenderData == "chara_LL" ||
@@ -154,6 +227,7 @@ namespace yz_ReSS
             {
                 v3 = c.renderer.PositionCenter();
             }
+            v3.y -= 0.2f;
             v3.z -= 50;
             return (v3);
         }
@@ -390,9 +464,9 @@ namespace yz_ReSS
             DelayAction(() => origin.PlaySound(id, v, spatial), delay);
         }
         //エフェクト遅延再生
-        static public void DelayPlayEffect(int delay, string id, Card CC, Card TC=null, Point TP = null, string AffterEffect = null)
+        static public void DelayPlayEffect(int delay, string id, Card CC, Card TC = null, Point fromP = null, Point TP = null, string AffterEffect = null, Color color = new Color())
         {
-            DelayAction(() => YzUtil.PlayEffect(id, CC, TC, TP.Copy(), replaceAffterEffect: AffterEffect), delay);
+            DelayAction(() => YzUtil.PlayEffect(id, CC, TC, fromP?.Copy(), TP?.Copy(), replaceAffterEffect: AffterEffect, color: color), delay);
         }
         /*
         //バニラのエフェクト遅延再生(デフォのDelayと別)

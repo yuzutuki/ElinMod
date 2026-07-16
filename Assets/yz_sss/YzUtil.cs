@@ -1,5 +1,3 @@
-using Cwl.Helper;
-using Cwl.Helper.Unity;
 using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections;
@@ -38,7 +36,7 @@ namespace yz_sss
     {
 
         //エフェクトの再生
-        public static void PlayEffect(string key, Card CC, Card TC = null, Point fromP = null, Point TP = null, string replaceAffterEffect = null, ExActionData actionData = default)
+        public static void PlayEffect(string key, Card CC, Card TC = null,  Point TP = null, Point fromP = null, string replaceAffterEffect = null, ExActionData actionData = default)
         {
             // エフェクトのPrefab取得
             if (!YzSSS.objDic.TryGetValue(key, out GameObject prefab))
@@ -395,17 +393,17 @@ namespace yz_sss
             {
                 case "yz_SIR":
                     //Debug.Log("SummonSIR");
-                    YzUtil.PlayEffect("Summon4", minion, minion, point);
+                    YzUtil.PlayEffect("Summon4", minion, minion,TP: point);
                     caster.Say("yz_summon_SIR");
                     break;
                 case "yz_Osty":
                     //Debug.Log("SummonOsty");
-                    YzUtil.PlayEffect("Summon1", minion, minion, point);
+                    YzUtil.PlayEffect("Summon1", minion, minion, TP: point);
                     c.Chara.AddCondition<StYzByside>();
                     break;
                 default:
                     //Debug.Log("SummonDefault");
-                    YzUtil.PlayEffect("Summon1", minion, minion, point);
+                    YzUtil.PlayEffect("Summon1", minion, minion, TP: point);
                     break;
             }
             //
@@ -681,9 +679,9 @@ namespace yz_sss
             DelayAction(() => origin.PlaySound(id, v, spatial), delay);
         }
         //エフェクト遅延再生
-        static public void DelayPlayEffect(int delay, string id, Card CC, Card TC=null, Point TP = null, string AffterEffect = null)
+        static public void DelayPlayEffect(int delay, string id, Card CC, Card TC=null ,Point TP = null, Point fromP = null, string AffterEffect = null)
         {
-            DelayAction(() => YzUtil.PlayEffect(id, CC, TC, TP.Copy(), replaceAffterEffect: AffterEffect), delay);
+            DelayAction(() => YzUtil.PlayEffect(id, CC, TC, TP?.Copy(), fromP?.Copy(), replaceAffterEffect: AffterEffect), delay);
         }
         //バニラのエフェクト遅延再生(デフォのDelayと別)
         static public void DelayVanilaEffect(int delay, Element EL, Point TP)

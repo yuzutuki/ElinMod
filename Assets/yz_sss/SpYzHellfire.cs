@@ -108,7 +108,7 @@ namespace yz_sss
 			YzUtil.DelayPlaySound("fire_step", CC, 10);
 			YzUtil.DelayPlaySound("fire_step", CC, 20);
 			//エフェクト再生
-			YzUtil.PlayEffect("Hellfire", CC, TC,TP.Copy());
+			YzUtil.PlayEffect("Hellfire", CC, TC,TP:TP.Copy());
 			YzUtil.ShowEffectiveArea(targetPoints,true);
 			//
 			//ダメージ出力

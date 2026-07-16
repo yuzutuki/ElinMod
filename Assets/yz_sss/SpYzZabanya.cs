@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Cwl.Helper.Unity;
 
 namespace yz_sss
 {
@@ -100,7 +99,7 @@ namespace yz_sss
                     minion.elements.SetTo(133, (int)Mathf.Max(CC.Evalue(133) * 0.95f, minion.Evalue(133)));
                     minion.elements.SetTo(304, (int)Mathf.Max(CC.Evalue(304) * 0.95f, minion.Evalue(304)));
                     //
-                    YzUtil.PlayEffect("Summon3", minion, minion, summonPoint.Copy());
+                    YzUtil.PlayEffect("Summon3", minion, minion, TP: summonPoint.Copy());
                     YzUtil.PlayEffect("Summon2", CC, minion);
                     //ìGéãê›íË
                     minion.AddCondition<ConYzLockon>();

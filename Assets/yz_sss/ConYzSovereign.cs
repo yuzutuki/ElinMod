@@ -57,11 +57,17 @@ namespace yz_sss
                 //Debug.Log($"Zone changed: {currentZone} != {this.castZone}");
                 base.Kill(false);
             }
+            if (castTrun == true)
+            {
+                castTrun = false;
+            }
         }
         //管理用
         [JsonProperty]
         public int castZone;
         [JsonProperty]
         public int stack;
+        [JsonProperty]
+        public bool castTrun;
     }
 }

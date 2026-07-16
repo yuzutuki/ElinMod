@@ -8,7 +8,7 @@ namespace yz_sss
 {
     internal class SpYzCheckTest : Spell
     {
-        int i = 1;
+        int i = 7;
         public override bool Perform()
         {
             //詠唱エフェクト
@@ -61,6 +61,24 @@ namespace yz_sss
                     break;
                 case (4):
                     YzWrapper.PlayVanillaEffect("Element/ball_Fire", YzUtil.GetStepTowards(CC.pos, TP), 1f);
+                    break;
+                    case (5):
+                    Debug.Log(" - 属性色ちぇっく - ");
+                    foreach(var ele in EClass.setting.elements)
+                    {
+                        Debug.Log($"{ele.Key}:{ele.Value?.colorSprite.ToString()}");
+                    }
+                    break;
+                case (6):
+                    Debug.Log(" - 色ちぇっく - ");
+                    foreach (var ele in EClass.Colors.elementColors)
+                    {
+                        Debug.Log($"{ele.Key}:{ele.Value.ToString()}");
+                    }
+                    break;
+                case (7):
+                    string text = Lang.GetDialog("unique", "yz_nemaki").RandomItem();
+                    CC.Say(text);
                     break;
             }
             return true;

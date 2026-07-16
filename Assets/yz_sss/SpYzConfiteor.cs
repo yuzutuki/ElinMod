@@ -40,13 +40,13 @@ namespace yz_sss
             switch (buffLevel)
             {
 				case 0:
-                    YzUtil.PlayEffect("Confiteor1", CC, TC, TP);
+                    YzUtil.PlayEffect("Confiteor1", CC, TC, TP: TP);
 					powFix = 1f;
 					YzUtil.DelayPlaySound("ab_swarm", CC, 8, 0.8f, false);
 					break;
 				case 1:
                     msg = Msg.GetGameText("yz_Confi2");
-                    YzUtil.PlayEffect("Confiteor2", CC, TC, TP);
+                    YzUtil.PlayEffect("Confiteor2", CC, TC, TP: TP);
 					powFix = 1.52f;
 					for (int i=0; i < 6; i++)
 					{
@@ -55,7 +55,7 @@ namespace yz_sss
 					break;
 				case 2:
                     msg = Msg.GetGameText("yz_Confi3");
-                    YzUtil.PlayEffect("Confiteor3", CC, TC, TP);
+                    YzUtil.PlayEffect("Confiteor3", CC, TC, TP: TP);
 					powFix = 1.76f;
 					radius = 2.5f;
 					YzUtil.DelayPlaySound("ab_shred", CC, 11, 1f, false);
@@ -64,7 +64,7 @@ namespace yz_sss
 					break;
 				case 3:
                     msg = Msg.GetGameText("yz_Confi4");
-                    YzUtil.PlayEffect("Confiteor4", CC, TC, TP);
+                    YzUtil.PlayEffect("Confiteor4", CC, TC, TP: TP);
 					powFix = 2f;
 					radius = 3f;
 					YzUtil.DelayPlaySound("ab_shred2", CC, 10, 0.7f, false);

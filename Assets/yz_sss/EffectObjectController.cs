@@ -495,7 +495,7 @@ namespace yz_sss
                 switch (moveType)
                 {
                     case (EffType.accR):
-                        YzUtil.PlayEffect(ed.afterEffect, cc, cc, cc.pos.Copy());
+                        YzUtil.PlayEffect(ed.afterEffect, cc, cc,TP: cc.pos.Copy());
                         break;
                     default:
                         YzUtil.PlayEffect(ed.afterEffect, cc, TP: tp);

@@ -25,7 +25,7 @@ namespace yz_sss
 			CC.PlaySound("atk_eleFire", 1f, true);
 			//この辺からメイン処理
 			//エフェクト再生
-			YzUtil.PlayEffect("AF", CC, TC, TP);
+			YzUtil.PlayEffect("AF", CC, TC,TP: TP);
 			//範囲とターゲット取得
 			List<Point> points = YzWrapper.GetCirclePoint(TP, 2, false, false);
 			List<Chara> targets = YzUtil.AvoidFriendlyFire(CC, points);

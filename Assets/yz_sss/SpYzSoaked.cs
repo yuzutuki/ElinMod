@@ -55,7 +55,7 @@ namespace yz_sss
             //
             CC.Say("yz_UseSoaked", CC);
             YzUtil.ShowEffectiveArea(ep);
-            YzUtil.PlayEffect("Soaked", CC, TC, TP);
+            YzUtil.PlayEffect("Soaked", CC, TC, TP: TP);
             CC.PlaySound("identify", 1f, true);
             ActEffect.TryDelay(delegate {
                 CC.PlaySound("water_farm", 1f, true);

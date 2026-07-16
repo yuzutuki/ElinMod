@@ -60,7 +60,7 @@ namespace yz_sss
                 }
 				//エフェクト再生
 				YzUtil.DelayPlaySound("attack_cane", CC, (count * 3) + 2, 0.5f, true);
-				YzUtil.DelayPlayEffect(count*3, "SoulSteal", CC, c, c.pos);
+				YzUtil.DelayPlayEffect(count*3, "SoulSteal", CC, c, TP:c.pos);
 				count++;
 			}
 			//

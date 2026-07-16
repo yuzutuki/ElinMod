@@ -55,7 +55,7 @@ namespace yz_sss
 				YzWrapper.AddDamage(this, CC, c, pow, ele,damageMult:dmgFix);
 				//エフェクト再生
 				YzUtil.DelayPlaySound("attack_cane", CC, (count * 6), 1f, true);
-				YzUtil.DelayPlayEffect(count * 6, "TetraSpirit", CC, c, c.pos);
+				YzUtil.DelayPlayEffect(count * 6, "TetraSpirit", CC, c, TP:c.pos);
 				YzWrapper.PlayVanillaEffect(ele, c.pos,0.2f);
 				//
 				if(!targetPoints.Contains(c.pos))

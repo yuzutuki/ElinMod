@@ -20,14 +20,25 @@ namespace yz_sss
             int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
-			//
-			if (TC.Chara.uid == CC.uid || !CC.HasCondition<ConYzSovereign>())
+            //
+            ConYzSovereign con = CC.GetCondition<ConYzSovereign>();
+            if (con == null)
+            {
+                con = CC.AddCondition<ConYzSovereign>(100, true) as ConYzSovereign;
+                con.castTrun = true;
+            }
+            else
+            {
+                Debug.Log("standing by!");
+            }
+            
+            //
+			if (TC.Chara.uid == CC.uid || con.castTrun)
 			{
                 //自己対象の処理
                 CC.PlaySound("build_area", 1f, true);
                 //スタック付与
                 int effCount = 1;
-                ConYzSovereign con = CC.GetCondition<ConYzSovereign>() ?? (CC.AddCondition<ConYzSovereign>(100, true) as ConYzSovereign);
                 if (con != null)
                 {
                     //256:鍛冶
@@ -40,6 +51,10 @@ namespace yz_sss
                     effCount = Mathf.Min(con.stack / 20, 100);
                     con.SetCastZone(EClass._zone.uid);
                 }
+                else
+                {
+                    EClass.pc.SayNothingHappans();
+                }
                 //
                 for(int i = 0; i < effCount; i++)
                 {
@@ -49,17 +64,20 @@ namespace yz_sss
             else
 			{
                 //他者対象の処理
-                CC.PlaySound("ab_shred", 0.8f, true);
-                CC.PlaySound("ab_shred2", 0.4f, true);
+                CC.PlaySound("ab_shred", 0.6f, true);
+                CC.PlaySound("ab_shred2", 0.3f, true);
                 //ダメージ出力
                 int mult = 1;
                 if(CC.HasCondition<ConYzSovereign>())
                 {
-                    ConYzSovereign con = CC.GetCondition<ConYzSovereign>();
                     if (con != null)
                     {
                         mult += (con.stack/100);
-                        CC.CureCondition<ConYzSovereign>();
+                        con.Kill(true);
+                    }
+                    else
+                    {
+                        EClass.pc.SayNothingHappans();
                     }
                 }
                 YzWrapper.AddDamage(this, CC, TC.Chara, pow, ele,damageMult:mult);

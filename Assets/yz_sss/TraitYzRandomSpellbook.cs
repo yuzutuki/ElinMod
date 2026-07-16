@@ -24,13 +24,13 @@ namespace yz_sss
         }
         public override void OnCreate(int lv)
         {
-            Debug.Log($"ref:{this.owner.refVal}");
+            //Debug.Log($"ref:{this.owner.refVal}");
             string name = this.owner.id;
             List<int> idList = new List<int>();
             foreach (int id in YzSSS.SpellIDList)
             {
                 EClass.sources.elements.map.TryGetValue(id, out SourceElement.Row row);
-                Debug.Log($"id:{id}, category:{row.categorySub}, alias:{row.alias}, tag:{row.tag.ToString()}");
+                //Debug.Log($"id:{id}, category:{row.categorySub}, alias:{row.alias}, tag:{row.tag.ToString()}");
                 switch (name)
                 {
                     case "YzRandomSpellbookA":

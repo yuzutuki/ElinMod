@@ -46,7 +46,7 @@ namespace yz_sss
 				CC.HealHP(heal, HealSource.Magic);
 			}
 			//エフェクト再生
-			YzUtil.PlayEffect("LifeDrain", CC, TC,TC.pos);
+			YzUtil.PlayEffect("LifeDrain", CC, TC,TP: TC.pos);
 			//
 			YzWrapper.PlayVanillaEffect(ele, TC.pos,0.2f);
 			//

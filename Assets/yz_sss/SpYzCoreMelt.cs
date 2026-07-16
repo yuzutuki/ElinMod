@@ -1,5 +1,4 @@
 using BJ;
-using Cwl.Helper.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Graphs;
@@ -95,9 +94,12 @@ namespace yz_sss
                     //
                 }, dir * 2 + count / 6);
             }
-            //CC.DamageHP(CC.hp-1);
-            CC.hp = 1;
-            CC.DamageHP(CC.MaxHP * 100);
+            //CC.DamageHP(CC.hp - 1);
+            CC.DamageHP(CC.MaxHP * 2);
+            if (!CC.isDead)
+            {
+                CC.hp = 1;
+            }
             //
             return true;
         }
