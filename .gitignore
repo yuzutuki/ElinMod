@@ -361,3 +361,31 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Assets/BepInEx/core
+/Assets/Example
+/Assets/exa_buta
+/Assets/Managed
+/Assets/Scenes
+/.vsconfig
+/Assembly-CSharp.csproj
+/ButasanMod.csproj
+/CustomWhateverLoader.dll
+/Elin.csproj
+/Library
+/MiscExample.csproj
+/MiscMod.sln
+/Mod_Misc
+/ProjectSettings
+/SSS.csproj
+/StrangeSpellShop.csproj
+/Temp
+/UserSettings
+/yzExParticle.csproj
+/yzPetrifaction.csproj
+/yzReSS.csproj
+/yzSoundChecker.csproj
+/yz_SwarmEvent.csproj
+/Assets/test_particle
+/Assets/yz_ExParticle
+/Assets/yz_SwarmEvent
+*.backup
