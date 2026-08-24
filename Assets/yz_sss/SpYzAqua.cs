@@ -21,44 +21,53 @@ namespace yz_sss
                 return false;
             }
             //パラメータ取得
-            int mlv = YzWrapper.GetLevel(CC, this);
-            int pow = YzWrapper.GetPower(CC, this);
+            Point tp = TP.Copy();
+            Chara cc = CC.Chara;
+            Chara tc = TC.Chara;
+            int mlv = YzWrapper.GetLevel(cc, this);
+            int pow = YzWrapper.GetPower(cc, this);
             Element ele = YzWrapper.GetElement(this, pow);
-            //効果音(発動時)の再生
-            //CC.PlaySound("identify", 1f, true);
-            CC.PlaySound("bubble", 1f, true);
-            for (int i = 0; i < 6; i++)
+            //連射データ
+            RapidData rd = new RapidData(cc);
+            float mult = 100f / (100f + rd.max * 30f);
+            for (rd.current = 0; rd.current <= rd.max; rd.current++)
             {
-                YzUtil.DelayAction(() =>
+                int delay = rd.RapidDelay();
+                //効果音(発動時)の再生
+                cc.PlaySound("bubble", 1f, true);
+                for (int i = 0; i < 6; i++)
                 {
-                    CC.PlaySound("bubble", 0.7f, true);
-                }, i * 7);
-            }
-            //この辺からメイン処理
-            //ダメージ出力やエフェクトは適宜入れ替える
-            List<Point> points = YzWrapper.GetArcPoint(CC.pos.Copy(), TP.Copy(), 7, 35);
-            points = YzUtil.DistanceSort(CC.pos.Copy(), points);
-            int count = 0;
-            foreach (Point p in points)
-            {
-                List<Chara> charas = p.ListCharas();
-                foreach (Chara c in charas)
-                {
-                    c.AddCondition<ConWet>(100, false);
-                    if (!YzUtil.AvoidFriendlyFire(CC, c))
+                    YzUtil.DelayAction(() =>
                     {
-                        YzWrapper.AddDamage(this, CC, c, pow, ele);
-                    }
+                        cc.PlaySound("bubble", 0.7f, true);
+                    }, i * 7);
                 }
-                //YzWrapper.PlayVanillaEffect(ele, p,count*2);
-                YzUtil.DelayAction(() =>
+                //この辺からメイン処理
+                //ダメージ出力やエフェクトは適宜入れ替える
+                List<Point> points = YzWrapper.GetArcPoint(cc.pos.Copy(), tp.Copy(), 7, 35);
+                points = YzUtil.DistanceSort(cc.pos.Copy(), points);
+                int count = 0;
+                foreach (Point p in points)
                 {
-                    YzUtil.ShowEffectiveArea(p.Copy());
-                    YzUtil.PlayEffect("Aqua", CC, TP: p.Copy());
-                    //YzWrapper.AddDamage(p.Copy(), this, CC, pow, ele);
-                }, count/2);
-                count++;
+                    List<Chara> charas = p.ListCharas();
+                    foreach (Chara c in charas)
+                    {
+                        c.AddCondition<ConWet>(100, false);
+                        if (!YzUtil.AvoidFriendlyFire(cc, c))
+                        {
+                            YzWrapper.AddDamage(this, cc, c, pow, ele, damageMult: mult);
+                        }
+                    }
+                    //YzWrapper.PlayVanillaEffect(ele, p,count*2);
+                    YzUtil.DelayAction(() =>
+                    {
+                        YzUtil.ShowEffectiveArea(p.Copy());
+                        YzUtil.PlayEffect("Aqua", cc, TP: p.Copy(), fromP: cc.pos.Copy());
+                        //YzWrapper.AddDamage(p.Copy(), this, cc, pow, ele);
+                    }, count / 2 + delay);
+                    count++;
 
+                }
             }
             //
             return true;

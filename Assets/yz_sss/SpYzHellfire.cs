@@ -30,14 +30,18 @@ namespace yz_sss
 				return false;
 			}
 			//パラメータ取得
-			int mlv = YzWrapper.GetLevel(CC, this);
+			Chara cc = CC.Chara;
+			Point tp = TP.Copy();
+            int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
 			Element eleSub = YzWrapper.GetElement("eleNether",pow);
-			//この辺からメイン処理
+            RapidData rd = new RapidData(cc);
+            float mult = 100f / (100f + rd.max * 25f);
+            //この辺からメイン処理
 
-			//吸血鬼チェック
-			float dmgFix = 1;
+            //吸血鬼チェック
+            float dmgFix = 1;
 			if (YzUtil.CheckVamp(CC))
 			{
 				dmgFix = 1.2f;
@@ -101,22 +105,31 @@ namespace yz_sss
 			}
 			targetPoints = YzUtil.DistanceSort(CC.pos, targetPoints);
 			//ターゲット取得
-			List<Chara> tcList = YzUtil.AvoidFriendlyFire(CC, targetPoints);
+			List<Chara> tcList = YzUtil.AvoidFriendlyFire(cc, targetPoints);
 			//
-			//効果音
-			YzUtil.DelayPlaySound("fire_step", CC, 0);
-			YzUtil.DelayPlaySound("fire_step", CC, 10);
-			YzUtil.DelayPlaySound("fire_step", CC, 20);
-			//エフェクト再生
-			YzUtil.PlayEffect("Hellfire", CC, TC,TP:TP.Copy());
-			YzUtil.ShowEffectiveArea(targetPoints,true);
-			//
-			//ダメージ出力
-			foreach(Chara c in tcList)
-			{ 
-				YzWrapper.AddDamage(this, CC, c, pow, ele ,damageMult:dmgFix);
-				YzWrapper.AddDamage(this, CC, c, pow, eleSub,damageMult:dmgFix);
-				YzWrapper.PlayVanillaEffect(ele,c.pos, 0.2f);
+			for (rd.current = 0; rd.current <= rd.max; rd.current++)
+			{
+				int delay = rd.RapidDelay();
+
+                YzUtil.DelayAction(() =>
+				{
+					//効果音
+					YzUtil.DelayPlaySound("fire_step", cc, 0);
+					YzUtil.DelayPlaySound("fire_step", cc, 10);
+					YzUtil.DelayPlaySound("fire_step", cc, 20);
+					//エフェクト再生
+					YzUtil.PlayEffect("Hellfire", cc, TP: tp.Copy(), fromP: cc.pos.Copy());
+					YzUtil.ShowEffectiveArea(targetPoints, true);
+				}, delay);
+            
+            //
+            //ダメージ出力
+            foreach (Chara c in tcList)
+				{
+					YzWrapper.AddDamage(this, CC, c, pow, ele, damageMult: dmgFix * mult);
+					YzWrapper.AddDamage(this, CC, c, pow, eleSub, damageMult: dmgFix * mult);
+					YzWrapper.PlayVanillaEffect(ele, c.pos, 0.2f);
+				}
 			}
 			//
 			return true;

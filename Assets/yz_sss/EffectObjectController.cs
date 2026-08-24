@@ -40,6 +40,7 @@ namespace yz_sss
         Vector2 fixVelocity;//移動量の補正
         bool moveDone;
         bool isEmitStop;//パーティクルの放出を停止
+        Vector3 replaceVector;//座標上書き
         //
         //
         void Start()
@@ -231,6 +232,14 @@ namespace yz_sss
             }
             //現在座標取得
             pos = tra.position;
+            //上書き適用
+            if (replaceVector != null && replaceVector != Vector3.zero)
+            {
+                pos = replaceVector;
+                pos2 = pos;
+                tra.position = pos;
+                replaceVector = Vector3.zero;
+            }
             switch (moveType)
             {
                 //発動者定点処理
@@ -402,22 +411,6 @@ namespace yz_sss
             return false;
         }
         //
-        //パーティクル放出停止処理
-        void StopEmit()
-        {
-            if (isEmitStop) return;
-            if (ps == null) return;
-            isEmitStop = true;
-            if (ps.isPlaying)
-            {
-                ps.Stop();
-                if (lifetime == -1)
-                {
-                    lifetime = 30;
-                }
-                return;
-            }
-        }
         //
         //破棄時の自動呼び出し
         private void OnDestroy()
@@ -515,7 +508,67 @@ namespace yz_sss
             }
 
         }
+        //パーティクル放出停止処理
+        public void StopEmit()
+        {
+            if (isEmitStop) return;
+            if (ps == null) return;
+            isEmitStop = true;
+            if (ps.isPlaying)
+            {
+                ps.Stop();
+                if (lifetime == -1)
+                {
+                    lifetime = 30;
+                }
+                return;
+            }
+        }
+        public void StopEmitALL()
+        {
+            if (isEmitStop) return;
+            foreach (var ps in this.GetComponentsInChildren<ParticleSystem>())
+            {
+                if (ps.isPlaying)
+                {
+                    ps.Stop();
+                }
+            }
+            isEmitStop = true;
+        }
+        //
+        public void SetStartColor(Color color, bool setAlpha = true)
+        {
+            foreach (var ps in this.GetComponentsInChildren<ParticleSystem>())
+            {
+                var psm = ps.main;
+                Color currentColor = psm.startColor.color;
+                currentColor.r = color.r;
+                currentColor.g = color.g;
+                currentColor.b = color.b;
+                if(setAlpha)
+                {
+                    currentColor.a = color.a;
+                }
+                psm.startColor = currentColor;
+            }
+        }
+        //再配置(ポイント基準)
+        public void ResetPoint(Point SP)
+        {
+            Point sp = SP.Copy();
+            pos = YzUtil.CharaCenter(sp);
+            pos2 = pos;
+            //座標の適用とZの補正
+            tra.position = new Vector3(pos2.x, pos2.y, tra.position.z);
 
+        }
+        //再配置(ベクトル基準)
+        public void ReplaceVector(Vector3 vector)
+        {
+            if (vector == null) return;
+            replaceVector = vector;
+        }
     }
 
 }

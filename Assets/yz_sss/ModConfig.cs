@@ -13,7 +13,7 @@ namespace yz_sss
             ModConfig.SpawnRestrict = config.Bind<bool>("General", "SpawnRestriction", true, "No Spellbook Generation");
             ModConfig.GpLimit = config.Bind<bool>("General", "GoblinPunch", true, "Goblin Punch Limit");
             ModConfig.SelfCastLock = config.Bind<bool>("General", "SelfCastLock", true, "Lock self-cast");
-            ModConfig.AutoMapPlus = config.Bind<bool>("General", "AutoMapPlus", true, "AutoMap+SeeInv");
+            ModConfig.AutoMapPlus = config.Bind<bool>("General", "AutoMapPlus", false, "AutoMap+SeeInv");
             Debug.Log("-= SSS:Config Loaded =-");
             Debug.Log($"-=SSS:flagCheck,{ModConfig.SpPop.Value},{ModConfig.SpawnRestrict.Value},{ModConfig.GpLimit.Value},{ModConfig.SelfCastLock.Value}");
         }

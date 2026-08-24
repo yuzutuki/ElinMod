@@ -17,8 +17,10 @@ namespace yz_sss
             {
 				return false;
 			}
-			//パラメータ取得
-			int mlv = YzWrapper.GetLevel(CC, this);
+            //パラメータ取得
+            Chara cc = CC.Chara;
+            Point tp = TP.Copy();
+            int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
 			//効果音(発動時)の再生
@@ -26,8 +28,8 @@ namespace yz_sss
             CC.PlaySound("missile", 0.5f, true);
             //この辺からメイン処理
             //エフェクト再生
-            ExActionData actionData = new ExActionData(this,EClass._zone,CC,TP);
-            YzUtil.PlayEffect("MagicCannon", CC, TP:TP,actionData:actionData);
+            ExActionData actionData = new ExActionData(this,EClass._zone,cc,tp);
+            YzUtil.PlayEffect("MagicCannon", cc, TP:tp,actionData:actionData);
 			//
 			return true;
         }

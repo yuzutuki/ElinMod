@@ -324,6 +324,7 @@ namespace yz_sss
             //ユニーク重複チェック
             if (uniqueSummon)
             {
+                //
                 foreach (Chara chara in EClass._map.charas)
                 {
                     if (chara.IsPCFactionMinion && !chara.IsEscorted())
@@ -387,10 +388,31 @@ namespace yz_sss
             {
                 minion.SetSummon(lifeTime);
             }
+            //ユニークサモン速度補正
+            if (uniqueSummon)
+            {
+                StYzUniqueSummon StUS = minion.AddCondition<StYzUniqueSummon>() as StYzUniqueSummon;
+                int pcSpeed = EClass.pc.Speed;
+                int minionDefaultSpeed = minion.Speed;
+                if(minionDefaultSpeed<pcSpeed)
+                {
+                    int speedFix = Math.Max(0, (pcSpeed + minionDefaultSpeed) / 2 - minionDefaultSpeed);
+                    speedFix = Mathf.FloorToInt(speedFix * (minionDefaultSpeed / 100f));
+                    if (speedFix > 0)
+                    {
+                        StUS.SetElement(79, speedFix);
+                    }
+                }
+            }
             //その他固有処理
+            //Debug.Log($"EClass.pc.Speed: {EClass.pc.Speed}");
             //Debug.Log($"SumonID:{summonID},Lv:{minion.LV},Power:{power}");
             switch (summonID)
             {
+                case "yz_SwordFamiliar":
+                    YzUtil.PlayEffect("Summon1", minion, minion, TP: point);
+                    c.Chara.AddCondition<StYzSAD>();
+                    break;
                 case "yz_SIR":
                     //Debug.Log("SummonSIR");
                     YzUtil.PlayEffect("Summon4", minion, minion,TP: point);

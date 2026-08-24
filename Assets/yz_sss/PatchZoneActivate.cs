@@ -8,12 +8,15 @@ using HarmonyLib;
 namespace yz_sss
 {
     //ゾーン読み込み時
-    //オートマッピング用
     [HarmonyPatch(typeof(Zone), nameof(Zone.Activate))]
     internal class PatchZoneActivate
     {
         [HarmonyPostfix]
         private static void Postfix(Zone __instance)
+        {
+            AutoMap();
+        }
+        private static void AutoMap()
         {
             //オートマッピング
             if (EClass.pc.HasCondition<StYzAutomap>())
@@ -32,7 +35,7 @@ namespace yz_sss
                     Element tl = c.elements.GetOrCreateElement(8770);
                     //8776:透明可視化
                     Element si = c.elements.GetOrCreateElement(8776);
-                    if (mm.Potential - 100 < 1 || tl.Potential - 100 < 1||(ModConfig.AutoMapPlus.Value && si.Potential-100<1))
+                    if (mm.Potential - 100 < 1 || tl.Potential - 100 < 1 || (ModConfig.AutoMapPlus.Value && si.Potential - 100 < 1))
                     {
                         Msg.Say("noSpellStock");
                         c.RemoveCondition<StYzAutomap>();
@@ -67,6 +70,7 @@ namespace yz_sss
 
                 }
             }
+
         }
     }
 }

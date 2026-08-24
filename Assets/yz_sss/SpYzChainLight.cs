@@ -20,15 +20,17 @@ namespace yz_sss
             {
                 return false;
             }
-            //パラメータ取得
+			//パラメータ取得
+			Chara cc = CC.Chara;
             int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
-			//この辺からメイン処理
-			List<Chara> targets = new List<Chara>();
+            RapidData rd = new RapidData(cc);
+            //この辺からメイン処理
+            List<Chara> targets = new List<Chara>();
 			targets.Add(TC.Chara);
 			//ターゲット決定
-			for(int i=0; i < 4; i++)
+			for(int i=0; i < 4+rd.max; i++)
             {
 				Point tempPoint = targets[i].pos.Copy();
 				List<Point> tempPoints = YzWrapper.GetCirclePoint(tempPoint, 4, false, true);
@@ -56,7 +58,7 @@ namespace yz_sss
 				YzUtil.ShowEffectiveArea(target.pos.Copy(),2);
 				//
 				YzWrapper.PlayVanillaEffect(ele, target.pos, 0.1f*count);
-				YzUtil.DelayPlaySound("spell_bolt", CC,count*3,0.2f - (0.2f*count));
+				YzUtil.DelayPlaySound("spell_bolt", cc,count*3,0.2f - (0.2f*count));
 				//原点更新
 				originChara = target;
 				count++;

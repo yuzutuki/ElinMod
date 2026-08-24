@@ -21,9 +21,11 @@ namespace yz_sss
                 return false;
             }
             //パラメータ取得
+            Chara cc = CC.Chara;
             int mlv = YzWrapper.GetLevel(CC, this);
             int pow = YzWrapper.GetPower(CC, this);
             Element ele = YzWrapper.GetElement(this, pow);
+            RapidData rd = new RapidData(cc);
             //効果音(発動時)の再生
             CC.PlaySound("throw", 1f, true);
             CC.PlaySound("Material/glass_drop", 1f, true);
@@ -31,7 +33,7 @@ namespace yz_sss
             //ダメージ出力やエフェクトは適宜入れ替える
             //
             //エフェクト再生
-            ExActionData actionData = new ExActionData(this, EClass._zone, CC, TP, TC.Chara,subFloat:3f);
+            ExActionData actionData = new ExActionData(this, EClass._zone, CC, TP, TC.Chara,subFloat:3f+rd.max);
             YzUtil.PlayEffect("Flask", CC, TC, TP: TP.Copy(),fromP:CC.pos.Copy(), actionData: actionData);
             //
             //

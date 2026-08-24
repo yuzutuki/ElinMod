@@ -19,11 +19,14 @@ namespace yz_sss
 				return false;
 			}
 			//パラメータ取得
+			Chara cc = CC.Chara;
 			int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
-			//効果音(発動時)の再生
-			CC.PlaySound("atk_eleNether", 0f, true);
+            RapidData rd = new RapidData(cc);
+            float mult = 100f / (100f + rd.max * 5f);
+            //効果音(発動時)の再生
+            CC.PlaySound("atk_eleNether", 0f, true);
 			//この辺からメイン処理
 			//吸血鬼チェック
 			float dmgFix = 1;
@@ -41,7 +44,7 @@ namespace yz_sss
 			}
 			//
 			List<Chara> targets = new List<Chara>();
-			for(int i = 0; i < 4; i++)
+			for(int i = 0; i < 4+rd.max; i++)
             {
 				int index = Random.Range(0, tempTargets.Count);
 				targets.Add(tempTargets[index]);
@@ -52,7 +55,7 @@ namespace yz_sss
 			foreach (Chara c in targets)
 			{
 				//ダメージ出力
-				YzWrapper.AddDamage(this, CC, c, pow, ele,damageMult:dmgFix);
+				YzWrapper.AddDamage(this, CC, c, pow, ele,damageMult:dmgFix * mult);
 				//エフェクト再生
 				YzUtil.DelayPlaySound("attack_cane", CC, (count * 6), 1f, true);
 				YzUtil.DelayPlayEffect(count * 6, "TetraSpirit", CC, c, TP:c.pos);

@@ -30,6 +30,7 @@ namespace yz_sss
             int mlv = YzWrapper.GetLevel(CC, this);
             int pow = YzWrapper.GetPower(CC, this);
             Element ele = YzWrapper.GetElement(this, pow);
+            RapidData rd = new RapidData(cc);
             //Ë’ö‚Æ‰ñ”‚Ìİ’è
             List<int> rapidBorder = new List<int> { 10, 20, 30, 60, 120, 240, 300 };
             int rapid = 1;
@@ -40,6 +41,7 @@ namespace yz_sss
                     rapid++;
                 }
             }
+            rapid += rd.max;
             List<int> rangeBorder = new List<int> { 5, 10, 20, 50, 100, 150, 200, 300 };
             int range = 1;
             foreach (int b in rangeBorder)

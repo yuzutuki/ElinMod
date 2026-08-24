@@ -21,12 +21,13 @@ namespace yz_sss
                 return false;
             }
             //パラメータ取得
+            Chara cc = CC.Chara;
+            Chara tc = TC.Chara;
             int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
-			//効果音(発動時)の再生
-			CC.PlaySound("attack_cane", 0f, true);
-			CC.PlaySound("atk_eleNether", 1f, true);
+            RapidData rd = new RapidData(cc);
+            float mult = 100f / (100f + rd.max * 20f);
 			//この辺からメイン処理
 			//ダメージ出力やエフェクトは適宜入れ替える
 			//吸血鬼チェック
@@ -35,21 +36,38 @@ namespace yz_sss
             {
 				dmgFix = 1.2f;
             }
-			//ダメージ出力
-			int tempDmg;
-			tempDmg = TC.hp;
-			YzWrapper.AddDamage(this, CC, TC.Chara, pow, ele,damageMult:dmgFix);
-			tempDmg = tempDmg - TC.hp;
-			if (tempDmg > 0)
-			{
-				int heal = Mathf.Max(1, Mathf.Min(tempDmg, TC.MaxHP) / 8);
-				CC.HealHP(heal, HealSource.Magic);
-			}
-			//エフェクト再生
-			YzUtil.PlayEffect("LifeDrain", CC, TC,TP: TC.pos);
-			//
-			YzWrapper.PlayVanillaEffect(ele, TC.pos,0.2f);
-			//
+            //ダメージ出力
+            //
+            for (rd.current = 0; rd.current <= rd.max; rd.current++)
+            {
+                int delay = rd.RapidDelay();
+                if (rd.current > 0 && (tc == null || tc.isDead))
+                {
+                    break;
+                }
+                int tempDmg = 0;
+                tempDmg = tc?.hp ?? 0;
+                YzWrapper.AddDamage(this, cc, tc, pow, ele, damageMult: dmgFix * mult);
+                tempDmg = tempDmg - (tc?.hp ?? 0);
+                Debug.Log("Life Drain:tempDmg: " + tempDmg);
+                if (tempDmg > 0)
+                {
+                    int heal = Mathf.Max(1, Mathf.Min(tempDmg, tc.MaxHP) / 4);
+                    Debug.Log("Life Drain:tempDmg: " + tempDmg + ", Heal: " + heal);
+                    cc.HealHP(heal, HealSource.Magic);
+                }
+                YzUtil.DelayAction(() =>
+                {
+                    //エフェクト再生
+                    YzUtil.PlayEffect("LifeDrain", cc, tc, TP: tc.pos.Copy());
+                    //効果音
+                    CC.PlaySound("attack_cane", 0f, true);
+                    CC.PlaySound("atk_eleNether", 1f, true);
+                    //
+                    YzWrapper.PlayVanillaEffect(ele, tc.pos.Copy(), 0.2f);
+                }, delay);
+                //
+            }
 			return true;
         }
     }

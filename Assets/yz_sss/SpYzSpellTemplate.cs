@@ -24,15 +24,15 @@ namespace yz_sss
             int mlv = YzWrapper.GetLevel(CC, this);
 			int pow = YzWrapper.GetPower(CC, this);
 			Element ele = YzWrapper.GetElement(this, pow);
-			//効果音(発動時)の再生
-			CC.PlaySound("identify", 1f, true);
 			//この辺からメイン処理
 			//ダメージ出力やエフェクトは適宜入れ替える
 			//
 			//ダメージ出力
-			YzWrapper.AddDamage(this, CC, TC.Chara, pow, ele) ;
+			YzWrapper.AddDamage(this, CC, TC.Chara, pow, ele);
+            //効果音
+            CC.PlaySound("identify", 1f, true);
             //エフェクト再生
-			YzUtil.PlayEffect("PwF", CC, TC);
+            YzUtil.PlayEffect("PwF", CC, TC);
 			//
 			YzWrapper.PlayVanillaEffect(ele, TC.pos,0f);
 			//
